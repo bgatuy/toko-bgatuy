@@ -1,6 +1,6 @@
+// functions/getProducts.js
 const { google } = require('googleapis');
 
-/* ===== Helpers ===== */
 const ok = (data) => ({
   statusCode: 200,
   headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
@@ -14,15 +14,6 @@ const err = (e, code = 500) => ({
 const parseNum = (v) => Number(String(v ?? '').replace(/[^\d.-]/g, '')) || 0;
 const norm = (s) => String(s || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
 
-function colIndex(header, aliases, dflt) {
-  const low = header.map((h) => norm(h));
-  for (const a of aliases) {
-    const i = low.indexOf(a);
-    if (i !== -1) return i;
-  }
-  return dflt;
-}
-
 function getEnv() {
   const SERVICE_EMAIL =
     process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ||
@@ -35,22 +26,21 @@ function getEnv() {
     process.env.GOOGLE_SHEETS_ID || process.env.GOOGLE_SHEET_ID || process.env.SHEET_ID;
 
   const SHEET_PRODUK = process.env.GOOGLE_SHEET_PRODUK || 'Produk';
-
   if (!SERVICE_EMAIL || !PRIVATE_KEY || !SPREADSHEET_ID) {
-    throw new Error(
-      'Missing env GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEET_ID'
-    );
+    throw new Error('Missing env');
   }
   return { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK };
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod === 'OPTIONS') return ok({});
-  if (event.httpMethod !== 'GET') return err(new Error('Method Not Allowed'), 405);
+function colIndex(header, aliases, dflt) {
+  const low = header.map(h => norm(h));
+  for (const a of aliases){ const i = low.indexOf(a); if (i !== -1) return i; }
+  return dflt;
+}
 
+exports.handler = async () => {
   try {
     const { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK } = getEnv();
-
     const auth = new google.auth.GoogleAuth({
       credentials: { client_email: SERVICE_EMAIL, private_key: PRIVATE_KEY },
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
@@ -63,20 +53,18 @@ exports.handler = async (event) => {
     });
 
     const rows = data.values || [];
-    if (!rows.length) return ok([]);
-
     const [header = [], ...body] = rows;
 
-    const cId = colIndex(header, ['id', 'kode', 'sku'], -1);
-    const cName = colIndex(header, ['produk', 'name', 'nama', 'product'], 0);
-    const cKat = colIndex(header, ['kategori', 'category'], 1);
-    const cModal = colIndex(header, ['hargamodal', 'modal', 'hpp', 'cost'], 2);
-    const cJual = colIndex(header, ['hargajual', 'jual', 'price', 'harga'], 3);
-    const cStok = colIndex(header, ['stok', 'stock'], 4);
+    const cId    = colIndex(header, ['id','kode','sku'], -1);
+    const cName  = colIndex(header, ['produk','product','name','nama'], 0);
+    const cKat   = colIndex(header, ['kategori','category'], 1);
+    const cModal = colIndex(header, ['harga modal','hargamodal','modal','hpp','cost'], 2);
+    const cJual  = colIndex(header, ['harga jual','hargajual','jual','price','harga'], 3);
+    const cStok  = colIndex(header, ['stok','stock'], 4);
 
-    const out = body
-      .filter((r) => (r[cName] ?? '').toString().trim() !== '')
-      .map((r) => ({
+    const products = body
+      .filter(r => (r && r[cName]))
+      .map(r => ({
         id: cId >= 0 ? (r[cId] || null) : null,
         name: r[cName],
         kategori: r[cKat] || 'Lainnya',
@@ -85,7 +73,7 @@ exports.handler = async (event) => {
         stok: parseNum(r[cStok]),
       }));
 
-    return ok(out);
+    return ok(products);
   } catch (e) {
     return err(e);
   }

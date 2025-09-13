@@ -290,16 +290,29 @@ async function onFinish(){
     transactionId: `TRX-${uid()}`,
     tanggal: now.toLocaleDateString('id-ID'),
     waktu: now.toLocaleTimeString('id-ID', { hour:'2-digit', minute:'2-digit' }),
-    transaksi: items.map(it => ({ id: it.id ?? null, name: it.name, harga: Number(it.harga||0), qty: Number(it.qty||0) })),
-    total, cash: state.cash, change: Math.max(0, (state.cash||0)-total),
+    transaksi: items.map(it => ({
+      id: it.id ?? null,
+      name: it.name,
+      harga: Number(it.harga||0),
+      qty: Number(it.qty||0)
+    })),
+    total,
+    cash: state.cash,
+    change: Math.max(0, (state.cash||0)-total),
   };
 
   // histori lokal
   const history = JSON.parse(localStorage.getItem('pos_history')||'[]');
-  history.unshift(trx); localStorage.setItem('pos_history', JSON.stringify(history));
+  history.unshift(trx);
+  localStorage.setItem('pos_history', JSON.stringify(history));
 
-  // kirim ke backend
-  try{ await saveTransaction(trx); } catch(e){ console.warn('saveTransaction error:', e.message); }
+  // kirim ke backend + terima stok final dari Sheet
+  let res = null;
+  try {
+    res = await saveTransaction(trx);
+  } catch(e){
+    console.warn('saveTransaction error:', e.message);
+  }
 
   // cetak struk sederhana
   const str = buildReceipt(trx);
@@ -307,17 +320,34 @@ async function onFinish(){
   w.document.write(`<pre style="font:14px/1.25 monospace;white-space:pre-wrap">${str}</pre>`);
   w.document.close(); w.focus(); w.print();
 
-  // kurangi stok UI
-  for (const it of items) {
-    const idx = state.products.findIndex(p =>
-      (p.id && p.id===it.id) ||
-      (!p.id && p.name===it.name && Number(p.harga)===Number(it.harga)));
-    if (idx>=0) state.products[idx].stok = Math.max(0, Number(state.products[idx].stok||0) - it.qty);
+  // sinkron stok UI: pakai angka resmi dari server kalau ada
+  if (res && Array.isArray(res.updatedRows)) {
+    for (const u of res.updatedRows) {
+      const idx = state.products.findIndex(p =>
+        (p.id ? p.id === u.id
+              : (p.name||'').trim().toLowerCase() === (u.name||'').trim().toLowerCase())
+      );
+      if (idx >= 0) state.products[idx].stok = Number(u.stok || 0);
+    }
+  } else {
+    // fallback lama: kurangi stok UI lokal
+    for (const it of items) {
+      const idx = state.products.findIndex(p =>
+        (p.id && p.id===it.id) ||
+        (!p.id && p.name===it.name && Number(p.harga)===Number(it.harga))
+      );
+      if (idx>=0) state.products[idx].stok =
+        Math.max(0, Number(state.products[idx].stok||0) - it.qty);
+    }
   }
-  state.filtered = state.products.filter(p => (p.name||'').toLowerCase().includes(searchInput.value.toLowerCase()));
+
+  state.filtered = state.products.filter(p =>
+    (p.name||'').toLowerCase().includes(searchInput.value.toLowerCase())
+  );
   state.cart.clear(); state.cash = 0; cashInput.value = '';
-  renderProducts(); renderCart(); // Dashboard akan update saat dibuka
+  renderProducts(); renderCart(); // Dashboard update saat dibuka
 }
+
 
 function buildReceipt(trx){
   const W=40, line='-'.repeat(W), money2 = n => `Rp ${Number(n||0).toLocaleString('id-ID')}`;
@@ -361,14 +391,15 @@ async function onSaveProduct(e){
     // update katalog lokal
     const idx = state.products.findIndex(p => p.name.toLowerCase()===payload.name.toLowerCase());
     if (res.mode === 'append' || idx === -1){
-      const row = { id: res.id || payload.id, name: payload.name, harga: res.harga ?? payload.harga, hargaModal: payload.hargaModal, stok: res.after ?? payload.stok, kategori: 'Lainnya' };
-      state.products.unshift(row);
-    } else {
-      const p = state.products[idx];
-      p.stok = res.after ?? (Number(p.stok||0) + payload.stok);
-      if (res.harga != null) p.harga = res.harga;
-      if (payload.hargaModal) p.hargaModal = payload.hargaModal;
-    }
+   const row = { id: res.id || payload.id, name: payload.name, harga: res.harga ?? payload.harga, hargaModal: res.hargaModal ?? payload.hargaModal, stok: res.after ?? payload.stok, kategori: res.kategori || 'Lainnya' };
+    state.products.unshift(row);
+ } else {
+   const p = state.products[idx];
+   p.stok = res.after ?? (Number(p.stok||0) + payload.stok);
+   if (res.harga != null) p.harga = res.harga;
+  if (res.hargaModal != null) p.hargaModal = res.hargaModal;
+  if (res.kategori) p.kategori = res.kategori;
+ }
     // sinkron struktur bantu
     state.productsByName.clear();
     for (const p of state.products) state.productsByName.set(p.name.toLowerCase(), p);
