@@ -37,11 +37,12 @@ function getEnv() {
 
   const SHEET_PRODUK    = process.env.GOOGLE_SHEET_PRODUK    || 'Produk';
   const SHEET_TRANSAKSI = process.env.GOOGLE_SHEET_TRANSAKSI || 'Transaksi';
+  const SHEET_RINGKASAN = process.env.GOOGLE_SHEET_RINGKASAN || 'Ringkasan';
 
   if (!SERVICE_EMAIL || !PRIVATE_KEY || !SPREADSHEET_ID) {
     throw new Error('Missing env GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEETS_ID');
   }
-  return { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK, SHEET_TRANSAKSI };
+  return { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK, SHEET_TRANSAKSI, SHEET_RINGKASAN };
 }
 
 function colIndex(header, aliases, dflt) {
@@ -62,14 +63,14 @@ exports.handler = async (event) => {
     const items = Array.isArray(trx.transaksi) ? trx.transaksi : [];
     if (!items.length) return err(new Error('transaksi kosong'), 400);
 
-    const { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK, SHEET_TRANSAKSI } = getEnv();
+    const { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK, SHEET_TRANSAKSI, SHEET_RINGKASAN } = getEnv();
     const auth = new google.auth.GoogleAuth({
       credentials: { client_email: SERVICE_EMAIL, private_key: PRIVATE_KEY },
       scopes: ['https://www.googleapis.com/auth/spreadsheets'],
     });
     const sheets = google.sheets({ version: 'v4', auth });
 
-    // === Produk sheet (untuk modal/kategori & update stok)
+    // === Produk sheet
     const prodRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_PRODUK}!A:Z`,
@@ -100,7 +101,7 @@ exports.handler = async (event) => {
       rowByName.set(norm(nm), i);
     }
 
-    // === Simpan transaksi (1 baris per item)
+    // === Simpan transaksi (detail per item)
     const values = [];
     let totalOmzet = 0, totalHpp = 0;
 
@@ -113,7 +114,6 @@ exports.handler = async (event) => {
       const kat   = mapKat.get(norm(nm)) || 'Lainnya';
       const omzet = harga * qty;
       const hpp   = modal * qty;
-      const laba  = omzet - hpp;
 
       totalOmzet += omzet;
       totalHpp   += hpp;
@@ -122,55 +122,111 @@ exports.handler = async (event) => {
         trx.transactionId || '',
         trx.tanggal || '',
         trx.waktu || '',
-        nm, kat, harga, modal, qty, omzet, hpp, laba,
+        nm, kat, harga, modal, qty, omzet, hpp, omzet - hpp,
         trx.cash || '', trx.change || ''
       ]);
     }
 
-    // append baris transaksi
+    // append detail ke Transaksi
     const appendRes = await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_TRANSAKSI}!A:N`,
+      range: `${SHEET_TRANSAKSI}!A:M`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
       requestBody: { values },
     });
 
-    // === Auto clear formatting baris baru ===
+    // === Simpan ringkasan per transaksi (1 baris aja)
     try {
-      const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-      const sheet = sheetMeta.data.sheets.find(s => s.properties.title === SHEET_TRANSAKSI);
-      if (sheet) {
-        const sheetId = sheet.properties.sheetId;
-        const lastRow = appendRes.data.updates.updatedRange.match(/\d+$/);
-        const endRowIndex = lastRow ? parseInt(lastRow[0], 10) : null;
-        if (endRowIndex) {
-          await sheets.spreadsheets.batchUpdate({
-            spreadsheetId: SPREADSHEET_ID,
-            requestBody: {
-              requests: [
-                {
-                  repeatCell: {
-                    range: {
-                      sheetId,
-                      startRowIndex: endRowIndex - values.length,
-                      endRowIndex: endRowIndex,
-                    },
-                    cell: { userEnteredFormat: {} },
-                    fields: "userEnteredFormat",
-                  },
-                },
-              ],
-            },
-          });
-        }
-      }
+      const ringkasanRow = [[
+        trx.transactionId || '',
+        trx.tanggal || '',
+        trx.waktu || '',
+        items.length,              // Jumlah Item
+        totalOmzet,
+        totalHpp,
+        totalOmzet - totalHpp,
+        trx.cash || '',
+        trx.change || ''
+      ]];
+
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: SPREADSHEET_ID,
+        range: `${SHEET_RINGKASAN}!A2:I`,   // 9 kolom sesuai header
+        valueInputOption: 'RAW',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: { values: ringkasanRow },
+      });
     } catch (e) {
-      console.warn('Gagal clear formatting:', e.message);
+      console.error('Gagal append ke Ringkasan:', e.message);
     }
 
-    // === Kurangi stok (ID prioritas, fallback nama) — hanya sel stok
-    const needByRow = new Map(); // rowIdx -> totalQty
+    // === Clear formatting Transaksi
+try {
+  const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+  const sheet = sheetMeta.data.sheets.find(s => s.properties.title === SHEET_TRANSAKSI);
+  if (sheet) {
+    const sheetId = sheet.properties.sheetId;
+    const lastRow = appendRes.data.updates.updatedRange.match(/\d+$/);
+    const endRowIndex = lastRow ? parseInt(lastRow[0], 10) : null;
+    if (endRowIndex) {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SPREADSHEET_ID,
+        requestBody: {
+          requests: [{
+            repeatCell: {
+              range: {
+                sheetId,
+                startRowIndex: endRowIndex - values.length,
+                endRowIndex: endRowIndex,
+              },
+              cell: { userEnteredFormat: {} },
+              fields: "userEnteredFormat",
+            },
+          }],
+        },
+      });
+    }
+  }
+} catch (e) {
+  console.error('Gagal clear formatting Transaksi:', e.message);
+}
+
+// === Clear formatting Ringkasan
+try {
+  const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+  const sheet = sheetMeta.data.sheets.find(s => s.properties.title === SHEET_RINGKASAN);
+  if (sheet) {
+    const sheetId = sheet.properties.sheetId;
+    const lastRow = await sheets.spreadsheets.values.get({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${SHEET_RINGKASAN}!A:A`,
+    });
+    const rowCount = lastRow.data.values?.length || 1;
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: SPREADSHEET_ID,
+      requestBody: {
+        requests: [{
+          repeatCell: {
+            range: {
+              sheetId,
+              startRowIndex: rowCount - 1,
+              endRowIndex: rowCount,
+            },
+            cell: { userEnteredFormat: {} },
+            fields: "userEnteredFormat",
+          },
+        }],
+      },
+    });
+  }
+} catch (e) {
+  console.error('Gagal clear formatting Ringkasan:', e.message);
+}
+
+
+    // === Kurangi stok
+    const needByRow = new Map();
     for (const it of items) {
       const id = String(it.id ?? '').trim();
       const nm = norm(String(it.name || ''));
@@ -189,7 +245,7 @@ exports.handler = async (event) => {
       const r = body[rowIdx] || [];
       const cur = parseNum(r[cStok]);
       const after = Math.max(0, cur - qty);
-      const rowNum = rowIdx + 2; // + header
+      const rowNum = rowIdx + 2;
       updates.push({
         range: `${SHEET_PRODUK}!${stokCol}${rowNum}:${stokCol}${rowNum}`,
         values: [[ after ]]
@@ -218,6 +274,7 @@ exports.handler = async (event) => {
       updatedRows,
     });
   } catch (e) {
+    console.error('SaveTransaction ERROR:', e.message);
     return err(e);
   }
 };
