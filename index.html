@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Toko Bg Atuy</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="brand">Toko Bg Atuy</div>
+
+    <nav class="tabs">
+  <button id="tab-pos" class="tab tab-active">
+    <span class="tab-icon">🛒</span>
+    <span>Kasir</span>
+  </button>
+  <button id="tab-dashboard" class="tab">
+    <span class="tab-icon">📊</span>
+    <span>Dashboard</span>
+  </button>
+</nav>
+
+
+    <div class="grow"></div>
+
+    <button id="btn-open-add" class="btn btn-primary">+ Tambah Produk</button>
+  </header>
+
+  <!-- ============== POS VIEW ============== -->
+  <main id="view-pos" class="container">
+    <section class="column">
+      <div class="card">
+        <div class="section-header">
+          <h2>Produk</h2>
+          <div id="itemCount" class="muted">—</div>
+        </div>
+
+        <div class="search">
+          <input id="searchInput" class="input" placeholder="Cari nama produk..." />
+        </div>
+
+        <div id="productGrid" class="grid"></div>
+      </div>
+    </section>
+
+    <aside class="column">
+      <div class="card">
+        <h3>Keranjang</h3>
+        <div id="cartList" class="cart"></div>
+      </div>
+
+      <div class="card">
+        <h3>Pembayaran</h3>
+        <div class="summary">
+          <div class="row">
+            <div class="muted">Subtotal</div>
+            <div id="subtotal" class="money">Rp 0</div>
+          </div>
+          <div class="row">
+            <div class="muted">Total</div>
+            <div id="total" class="money strong">Rp 0</div>
+          </div>
+          <div class="row">
+            <div class="muted">Tunai (Rp)</div>
+          </div>
+          <input id="cashInput" class="input right" inputmode="numeric" placeholder="0" />
+
+          <div class="row">
+            <div class="muted">Kembalian</div>
+            <div id="change" class="money">Rp 0</div>
+          </div>
+
+          <button id="btnFinish" class="btn btn-primary wide">🧾 Simpan & Cetak</button>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- ============== DASHBOARD VIEW ============== -->
+  <main id="view-dashboard" class="container hidden">
+    <section class="column wide">
+      <!-- tombol reset histori lokal -->
+      <div class="mb-8">
+        <button id="btn-reset-local" class="btn">Reset Histori Lokal</button>
+      </div>
+
+      <!-- KPI Harian -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-title">Keuntungan Hari Ini</div>
+          <div id="kpi-profit-today" class="kpi-value">Rp 0</div>
+          <div class="kpi-note">hari ini</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Omzet Hari Ini</div>
+          <div id="kpi-omzet-today" class="kpi-value">Rp 0</div>
+          <div class="kpi-note">hari ini</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">HPP Hari Ini</div>
+          <div id="kpi-hpp-today" class="kpi-value">Rp 0</div>
+          <div class="kpi-note">hari ini</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-title">Transaksi Hari Ini</div>
+          <div id="kpi-count-today" class="kpi-value">0</div>
+          <div class="kpi-note">count</div>
+        </div>
+      </div>
+
+      <!-- KPI 30 hari -->
+      <div class="kpi-grid">
+        <div class="kpi-card subtle">
+          <div class="kpi-title">Keuntungan Total (30 hari)</div>
+          <div id="kpi-profit-30" class="kpi-value">Rp 0</div>
+          <div class="kpi-note">30 hari terakhir</div>
+        </div>
+        <div class="kpi-card subtle">
+          <div class="kpi-title">Omzet (30 hari)</div>
+          <div id="kpi-omzet-30" class="kpi-value">Rp 0</div>
+          <div class="kpi-note">30 hari terakhir</div>
+        </div>
+        <div class="kpi-card subtle">
+          <div class="kpi-title">HPP (30 hari)</div>
+          <div id="kpi-hpp-30" class="kpi-value">Rp 0</div>
+          <div class="kpi-note">30 hari terakhir</div>
+        </div>
+      </div>
+
+      <!-- Trend -->
+      <div class="card">
+        <h3>Trend Laba (30 hari)</h3>
+        <canvas id="profitChart" height="160"></canvas>
+      </div>
+
+      <!-- Top kategori & Stok tipis & Transaksi terbaru -->
+      <div class="grid-2">
+        <div class="card">
+          <h3>Top Kategori by Laba</h3>
+          <div id="catList" class="list"></div>
+        </div>
+        <div class="card">
+          <h3>Stok Tipis (≤ 5)</h3>
+          <div id="lowStockList" class="list"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Transaksi Terbaru</h3>
+        <div id="recentList" class="recent"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal Tambah/Restock Produk -->
+  <dialog id="addModal" class="modal">
+    <form method="dialog" class="modal-card" id="addForm">
+      <h3>Tambah Produk</h3>
+
+      <label class="label">ID (unik) — kosongkan biar auto</label>
+      <input class="input" name="id" placeholder="PXXXX" />
+
+      <label class="label">Nama produk</label>
+      <input class="input" name="name" placeholder="Beras BMW 5KG" required />
+
+      <div class="flex2">
+        <div>
+          <label class="label">Harga Modal</label>
+          <input class="input" name="hargaModal" inputmode="numeric" placeholder="95000" />
+        </div>
+        <div>
+          <label class="label">Harga Jual</label>
+          <input class="input" name="harga" inputmode="numeric" placeholder="115000" />
+        </div>
+      </div>
+
+      <label class="label">Tambah stok (mis. 10)</label>
+      <input class="input" name="stok" inputmode="numeric" placeholder="10" />
+
+      <div class="modal-actions">
+        <button class="btn" value="close" type="button" id="btnCloseAdd">Batal</button>
+        <button class="btn btn-primary" id="btnSaveAdd" type="submit">Simpan</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

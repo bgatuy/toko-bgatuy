@@ -1,0 +1,27 @@
+{
+  "name": "toko-bg-atuy",
+  "version": "1.0.0",
+  "description": "POS Kasir Toko Bg Atuy (vanilla JS + Netlify Functions + Google Sheets)",
+  "main": "app.js",
+  "scripts": {
+    "dev": "netlify dev",
+    "serve": "netlify dev --live",
+    "build": "echo 'Static site - no build step required'"
+  },
+  "keywords": [
+    "pos",
+    "kasir",
+    "netlify",
+    "google-sheets"
+  ],
+  "author": "Bang Atuy",
+  "license": "ISC",
+  "dependencies": {
+    "googleapis": "^159.0.0",
+    "multiparty": "^4.2.3",
+    "pdf-parse": "^1.1.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

@@ -1,0 +1,285 @@
+/* ========== Reset ringan + font ==========
+   (biar nggak jatuh ke Times New Roman) */
+*,*::before,*::after{ box-sizing:border-box }
+html,body{ height:100% }
+body,h1,h2,h3,h4,p,figure,blockquote,dl,dd{ margin:0 }
+ul[role='list'],ol[role='list']{ list-style:none }
+img, picture{ max-width:100%; display:block }
+button,input,select,textarea{ font:inherit }
+a{ color:inherit; text-decoration:none }
+
+/* ========== Token warna ==========
+   tema biru modern + netral */
+:root{
+  --bg: #f7f8fa;          /* background halaman */
+  --card: #ffffff;        /* kartu putih */
+  --ink: #0f172a;         /* teks utama (slate-900) */
+  --muted: #6b7280;       /* teks sekunder (gray-500/600) */
+  --border: #e5e7eb;      /* garis halus */
+
+  --brand: #2563eb;       /* blue-600 */
+  --brand-700: #1d4ed8;   /* blue-700 */
+  --ring: rgba(96,165,250,.40); /* focus ring (blue-400) */
+
+  --danger: #e11d48;      /* rose-600 */
+  --ok: #059669;          /* emerald-600 */
+  --warn: #d97706;        /* amber-600 */
+
+  --radius: 16px;
+}
+
+/* ========== Global ==========
+   set font & warna dasar */
+html{ scroll-behavior:smooth }
+body{
+  font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji",
+               "Segoe UI Emoji"; 
+  color:var(--ink);
+  background:
+    radial-gradient(900px 400px at 100% 0%, rgba(37,99,235,.06), transparent 45%),
+    linear-gradient(180deg, #fafafa, #f6f7f9);
+  background-attachment: fixed;
+}
+
+/* util */
+.hidden{ display:none !important }
+.grow{ flex:1 }
+.money{ font-variant-numeric: tabular-nums }
+.strong{ font-weight:800 }
+.muted{ color:var(--muted); font-size:14px }
+.mb-8{ margin-bottom:8px }
+.mb-4{ margin-bottom:4px }
+
+/* ========== Topbar ========== */
+.topbar{
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:20px;
+  padding:10px 16px;
+  background: rgba(255,255,255,.85);
+  backdrop-filter: blur(6px);
+  border-bottom:1px solid var(--border);
+}
+.brand{ font-weight:800 }
+
+/* Tabs (Kasir / Dashboard) */
+.tabs{ display:flex; gap:8px }
+.tab{
+  padding:8px 15px; border-radius:10px;
+  background:#f1f5f9; color:#0f172a;
+  border:1px solid #e5e7eb; cursor:pointer;
+  transition:filter .15s;
+}
+.tab:hover{ filter:brightness(.98) }
+.tab-active{ background:var(--brand); color:#fff; border-color:transparent }
+
+.tabs .tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  font-size: 15px;
+}
+.tabs .tab-icon {
+  font-size: 14px; /* sesuaikan biar pas */
+  line-height: 1;
+}
+
+/* ========== Layout grid dua kolom untuk POS ========== */
+.container{
+  max-width:1500px; margin:16px auto; padding:0 16px;
+  display:grid; grid-template-columns:1.5fr 1fr; gap:16px;
+}
+.container.hidden{ display:none }
+.column{ display:flex; flex-direction:column; gap:16px }
+.column.wide{ grid-column:1 / -1 }
+
+/* ========== Card umum ========== */
+.card{
+  background:var(--card);
+  border:2px solid var(--border);
+  border-radius:var(--radius);
+  padding:14px;
+  box-shadow:0 1px 2px rgba(0,0,0,.03);
+}
+.section-header{ display:flex; align-items:center; justify-content:space-between }
+h2,h3{ margin:0 0 10px }
+
+/* ========== Input & Button ========== */
+.input{
+  width:100%; padding:10px 12px; border-radius:12px;
+  border:1px solid var(--border); background:#f3f4f6;
+  outline:none; color:var(--ink);
+}
+.input:focus{ box-shadow:0 0 0 3px var(--ring); background:#fff }
+.input.right{ text-align:right }
+
+.btn{
+  border:1px solid var(--border); background:#fff; color:var(--ink);
+  padding:8px 14px; border-radius:12px; cursor:pointer;
+  transition: filter .15s, transform .08s;
+}
+.btn:hover{ filter:brightness(.98) }
+.btn:active{ transform:translateY(1px) }
+.btn-primary{ background:var(--brand); color:#fff; border-color:transparent }
+.btn-primary:hover{ background:var(--brand-700) }
+.btn.danger{ background:#fff; border-color:#fecdd3; color:var(--danger) }
+.btn.wide{ width:100% }
+
+/* ===== Utilities ukuran tombol ===== */
+.btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 10px; }
+.btn-md { padding: 8px 14px; font-size: 14px; border-radius: 12px; } /* default kamu */
+.btn-lg { padding: 12px 18px; font-size: 15px; border-radius: 14px; }
+.btn-xl { padding: 14px 22px; font-size: 16px; border-radius: 16px; }
+
+/* ===== Tombol khusus: Tambah (di kartu produk) ===== */
+.btn-add {
+  /* ukuran bebas kamu atur di sini */
+  padding: 5px 15px;
+  font-size: 15px;
+  border-radius: 10px;
+  width: 100%;              /* biar tombol kartu melebar rapih */
+}
+#productGrid .card-prod .btn-add { /* jaga-jaga scope ke grid produk */
+  margin-top: 10px;
+}
+
+/* ===== Tombol icon kecil (trash) – biar gak kegedean lain-lain */
+.btn-icon {
+  padding: 6px; width: 32px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+}
+
+
+/* ========== Produk: search + grid + kartu ========== */
+.search{ margin:10px 0 14px }
+.grid{
+  display:grid; grid-template-columns: repeat(4, minmax(0,1fr));
+  gap:12px;
+}
+.card-prod{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:12px;
+  display:flex; flex-direction:column; gap:8px;
+  transition: box-shadow .15s, transform .1s;
+}
+.card-prod:hover{ box-shadow:0 6px 14px rgba(2,6,23,.08); transform:translateY(-1px) }
+
+/* badge/pill kecil */
+.pill{
+  display:inline-flex; align-items:center; gap:6px; font-size:11px;
+  padding:3px 8px; border-radius:999px; border:1px solid var(--border); background:#fff;
+}
+.pill.ok{ background:#ecfdf5; color:var(--ok); border-color:#bbf7d0 }
+.pill.warn{ background:#fff7ed; color:var(--warn); border-color:#fed7aa }
+.pill.danger{ background:#fff1f2; color:var(--danger); border-color:#fecdd3 }
+
+.prod-name{
+  font-weight:600; font-size:14px; line-height:1.25;
+  min-height:2.2em; /* 2 lines clamp feel */
+}
+.prod-price{ font-size:14px; font-weight:700 } /* harga hitam (default var(--ink)) */
+
+/* ========== Keranjang ========== */
+/* container */
+.cart { max-height: 340px; overflow: auto; padding-right: 4px; }
+.cart::-webkit-scrollbar{ width:8px }
+.cart::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:10px }
+
+/* row */
+.cart-row{
+  display: grid;
+  grid-template-columns: 1fr auto auto minmax(10px,auto); /* info | qty | hapus | harga */
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+/* info kiri */
+.cart-info{ min-width: 0; }
+.cart-info .title{
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.cart-info .meta{
+  display:block; margin-top:2px; font-size:12px; color:#7a8699;
+}
+
+/* qty group (–  [ 2 ]  +) */
+.cart-qty{
+  display: inline-flex; align-items: center; gap: 6px;
+  background:#f3f6ff; border:1px solid #dfe7ff; border-radius:10px; padding:4px 6px;
+}
+.cart-qty .btn{
+  width:28px; height:28px; border-radius:8px;
+  border:1px solid #d3dbeb; background:#fff; font-size:16px; line-height:1;
+  cursor:pointer;
+}
+.cart-qty .btn:active{ transform: translateY(1px); }
+.cart-qty .btn.is-disabled{ opacity:.45; pointer-events:none; }
+.cart-qty .input{
+  width:28px; text-align:center; border:0; background:transparent; font-weight:600;
+}
+
+/* tombol hapus (soft danger) */
+.cart-remove{
+  border:1px solid #ffb6bd; color:#d12f3f; background:#fff5f6;
+  border-radius:10px; padding:6px 12px; font-weight:600; cursor:pointer; white-space:nowrap;
+}
+.cart-remove:hover{ background:#ffe9eb; }
+
+/* harga kanan */
+.cart-price{
+  justify-self:end; text-align:right; font-weight:700;
+  font-variant-numeric: tabular-nums; min-width:120px;
+}
+.qty{ display:flex; align-items:center; gap:6px }
+.qty .btn{ padding:6px 10px; border-radius:10px }
+
+/* Ringkasan */
+.summary .row{ display:flex; align-items:center; justify-content:space-between; margin:6px 0 }
+
+/* ========== Modal Tambah Produk (dialog native) ========== */
+.modal{ padding:0; border:none; background:none }
+.modal::backdrop{ background:rgba(0,0,0,.35) }
+.modal-card{
+  width:560px; max-width:calc(100vw - 24px);
+  background:var(--card); border:1px solid var(--border);
+  border-radius:16px; padding:16px;
+}
+.label{ display:block; font-size:13px; color:var(--muted); margin-top:8px; margin-bottom:6px }
+.flex2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px }
+
+/* ========== Dashboard KPI & list ==========
+   (dipakai di view-dashboard) */
+.kpi-grid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:12px }
+.kpi-card{
+  background:var(--card); border:1px solid var(--border);
+  border-radius:14px; padding:12px;
+}
+.kpi-card.subtle{ background:#f8fafc }
+.kpi-title{ font-size:13px; color:var(--muted) }
+.kpi-value{ font-size:24px; font-weight:800; margin-top:4px }
+.kpi-note{ font-size:12px; color:var(--muted); margin-top:2px }
+
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
+.list .row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border) }
+.badge{ padding:4px 8px; border-radius:10px; background:#eef2ff; color:#3730a3; font-size:12px }
+.recent .item{ padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between }
+.recent .muted{ font-size:12px }
+
+/* ========== Responsif ========== */
+@media (max-width: 1024px){
+  .grid{ grid-template-columns: repeat(3, minmax(0,1fr)) }
+  .container{ grid-template-columns: 1fr }
+  .kpi-grid{ grid-template-columns: repeat(2, minmax(0,1fr)) }
+  .grid-2{ grid-template-columns: 1fr }
+}
+@media (max-width: 640px){
+  .grid{ grid-template-columns: repeat(2, minmax(0,1fr)) }
+}
