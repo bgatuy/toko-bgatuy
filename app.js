@@ -1,4 +1,4 @@
-import { fetchProducts, saveTransaction, upsertProduct, getStats30d } from './assets/api.js';
+import { fetchProducts, saveTransaction, upsertProduct, getStats30d } from './assets/api.js'
 
 /* =========================
    STATE & HELPERS
@@ -38,7 +38,7 @@ const btnFinish  = document.getElementById('btnFinish');
 
 const addModal   = document.getElementById('addModal');
 const addForm    = document.getElementById('addForm');
-document.getElementById('btn-open-add').onclick = () => addModal.showModal();
+document.getElementById('btn-open-add').onclick = () => { populateSuggestions(); addModal.showModal(); }
 document.getElementById('btnCloseAdd').onclick   = () => addModal.close();
 
 /* Dashboard */
@@ -119,8 +119,7 @@ function router(view){
   if (isDash){
     viewDashboard.classList.remove('hidden');
     viewPos.classList.add('hidden');
-    // refresh setiap kali masuk dashboard
-    loadDashboard();
+    loadDashboard(); // refresh setiap kali masuk dashboard
   } else {
     viewPos.classList.remove('hidden');
     viewDashboard.classList.add('hidden');
@@ -177,11 +176,9 @@ function productCard(p){
   price.className = 'prod-price'; price.textContent = money(p.harga);
 
   const btn = document.createElement('button');
-    // sebelumnya: 'btn btn-primary'
-    btn.className = 'btn btn-primary btn-add';   // <- tambah kelas khusus
-    btn.textContent = 'Tambah';
-    btn.onclick = () => addToCart(p);
-
+  btn.className = 'btn btn-primary btn-add';
+  btn.textContent = 'Tambah';
+  btn.onclick = () => addToCart(p);
 
   const card = document.createElement('div');
   card.className = 'card-prod';
@@ -247,12 +244,11 @@ function renderCart(){
     const bInc = document.createElement('button'); bInc.className='btn'; bInc.textContent='+'; bInc.onclick = () => inc(key);
     qty.append(bDec, qv, bInc);
 
-   const del = document.createElement('button');
-        del.className = 'btn btn-trash'; 
-        del.innerHTML = '🗑️';
-        del.title = 'Hapus';
-        del.onclick = () => removeItem(key);
-
+    const del = document.createElement('button');
+    del.className = 'btn btn-trash'; 
+    del.innerHTML = '🗑️';
+    del.title = 'Hapus';
+    del.onclick = () => removeItem(key);
 
     row.append(left, qty, lineTotal, del);
     cartList.appendChild(row);
@@ -306,21 +302,18 @@ async function onFinish(){
   history.unshift(trx);
   localStorage.setItem('pos_history', JSON.stringify(history));
 
-  // kirim ke backend + terima stok final dari Sheet
+  // kirim ke backend
   let res = null;
-  try {
-    res = await saveTransaction(trx);
-  } catch(e){
-    console.warn('saveTransaction error:', e.message);
-  }
+  try { res = await saveTransaction(trx); }
+  catch(e){ console.warn('saveTransaction error:', e.message); }
 
-  // cetak struk sederhana
+  // cetak struk
   const str = buildReceipt(trx);
   const w = window.open('', '_blank', 'width=400,height=600');
   w.document.write(`<pre style="font:14px/1.25 monospace;white-space:pre-wrap">${str}</pre>`);
   w.document.close(); w.focus(); w.print();
 
-  // sinkron stok UI: pakai angka resmi dari server kalau ada
+  // sync stok dari server
   if (res && Array.isArray(res.updatedRows)) {
     for (const u of res.updatedRows) {
       const idx = state.products.findIndex(p =>
@@ -330,7 +323,6 @@ async function onFinish(){
       if (idx >= 0) state.products[idx].stok = Number(u.stok || 0);
     }
   } else {
-    // fallback lama: kurangi stok UI lokal
     for (const it of items) {
       const idx = state.products.findIndex(p =>
         (p.id && p.id===it.id) ||
@@ -345,9 +337,8 @@ async function onFinish(){
     (p.name||'').toLowerCase().includes(searchInput.value.toLowerCase())
   );
   state.cart.clear(); state.cash = 0; cashInput.value = '';
-  renderProducts(); renderCart(); // Dashboard update saat dibuka
+  renderProducts(); renderCart();
 }
-
 
 function buildReceipt(trx){
   const W=40, line='-'.repeat(W), money2 = n => `Rp ${Number(n||0).toLocaleString('id-ID')}`;
@@ -383,29 +374,36 @@ async function onSaveProduct(e){
     harga: parseNum(fd.get('harga')),
     hargaModal: parseNum(fd.get('hargaModal')),
     stok: parseNum(fd.get('stok')),
+    kategori: String(fd.get('kategori')||'').trim() || 'Lainnya',
   };
   if (!payload.name) return alert('Nama wajib.');
 
   try{
     const res = await upsertProduct(payload);
-    // update katalog lokal
     const idx = state.products.findIndex(p => p.name.toLowerCase()===payload.name.toLowerCase());
     if (res.mode === 'append' || idx === -1){
-   const row = { id: res.id || payload.id, name: payload.name, harga: res.harga ?? payload.harga, hargaModal: res.hargaModal ?? payload.hargaModal, stok: res.after ?? payload.stok, kategori: res.kategori || 'Lainnya' };
-    state.products.unshift(row);
- } else {
-   const p = state.products[idx];
-   p.stok = res.after ?? (Number(p.stok||0) + payload.stok);
-   if (res.harga != null) p.harga = res.harga;
-  if (res.hargaModal != null) p.hargaModal = res.hargaModal;
-  if (res.kategori) p.kategori = res.kategori;
- }
-    // sinkron struktur bantu
+      const row = {
+        id: res.id || payload.id,
+        name: payload.name,
+        harga: res.harga ?? payload.harga,
+        hargaModal: res.hargaModal ?? payload.hargaModal,
+        stok: res.after ?? payload.stok,
+        kategori: res.kategori || payload.kategori || 'Lainnya'
+      };
+      state.products.unshift(row);
+    } else {
+      const p = state.products[idx];
+      p.stok = res.after ?? (Number(p.stok||0) + payload.stok);
+      if (res.harga != null) p.harga = res.harga;
+      if (res.hargaModal != null) p.hargaModal = res.hargaModal;
+      if (res.kategori) p.kategori = res.kategori;
+    }
     state.productsByName.clear();
     for (const p of state.products) state.productsByName.set(p.name.toLowerCase(), p);
 
     state.filtered = state.products.filter(p => (p.name||'').toLowerCase().includes(searchInput.value.toLowerCase()));
     renderProducts();
+    populateSuggestions();
     addModal.close(); addForm.reset();
   }catch(err){
     alert('Gagal simpan ke Google Sheet: ' + err.message);
@@ -413,25 +411,59 @@ async function onSaveProduct(e){
 }
 
 /* =========================
+   SUGGESTIONS (Produk & Kategori)
+   ========================= */
+function populateSuggestions() {
+  const productList   = document.getElementById('productList');
+  const kategoriList  = document.getElementById('kategoriList');
+  const nameInput     = document.getElementById('nameInput');
+  const kategoriInput = document.getElementById('kategoriInput');
+  const hargaModalInp = document.getElementById('hargaModalInput');
+  const hargaInp      = document.getElementById('hargaInput');
+
+  productList.innerHTML = '';
+  for (const p of state.products) {
+    const opt = document.createElement('option');
+    opt.value = p.name;
+    productList.appendChild(opt);
+  }
+
+  const unik = [...new Set(state.products.map(p => p.kategori || 'Lainnya'))];
+  kategoriList.innerHTML = '';
+  for (const c of unik) {
+    const opt = document.createElement('option');
+    opt.value = c;
+    kategoriList.appendChild(opt);
+  }
+
+  nameInput.addEventListener('change', () => {
+    const nama = nameInput.value.trim().toLowerCase();
+    const p = state.productsByName.get(nama);
+    if (p) {
+      kategoriInput.value  = p.kategori || '';
+      hargaModalInp.value  = p.hargaModal || '';
+      hargaInp.value       = p.harga || '';
+    }
+  });
+}
+
+/* =========================
    DASHBOARD
    ========================= */
 async function loadDashboard(){
-  // sumber 1: histori lokal (cepat)
   const hist = JSON.parse(localStorage.getItem('pos_history')||'[]');
 
-  // mapping biaya modal & kategori dari katalog
   const modalOf = name => (state.productsByName.get(String(name||'').toLowerCase())?.hargaModal) || 0;
   const catOf   = name => (state.productsByName.get(String(name||'').toLowerCase())?.kategori)   || 'Lainnya';
 
-  // agregasi harian 30 hari (lokal)
   const now = new Date();
   const start = new Date(now); start.setDate(now.getDate()-29); start.setHours(0,0,0,0);
-  const byDay = new Map(); // 'id-ID date' -> {omzet,hpp,profit,count}
+  const byDay = new Map();
   let profit30=0, omzet30=0, hpp30=0, countToday=0, omzetToday=0, hppToday=0, profitToday=0;
   const today = todayStr();
 
   for (const trx of hist) {
-    const d = trx.tanggal; // 'id-ID' format
+    const d = trx.tanggal;
     if (!byDay.has(d)) byDay.set(d, { omzet:0, hpp:0, profit:0, count:0 });
     const rec = byDay.get(d);
     let tOmzet=0, tHpp=0;
@@ -442,7 +474,6 @@ async function loadDashboard(){
     }
     rec.omzet += tOmzet; rec.hpp += tHpp; rec.profit += (tOmzet - tHpp); rec.count += 1;
 
-    // akumulasi 30 hari (cek rentang)
     const dt = parseIdDate(d);
     if (dt >= start && dt <= now) {
       omzet30 += tOmzet; hpp30 += tHpp; profit30 += (tOmzet - tHpp);
@@ -452,7 +483,6 @@ async function loadDashboard(){
     }
   }
 
-  // top kategori dari histori lokal
   const catAgg = new Map();
   for (const trx of hist) {
     for (const it of (trx.transaksi||[])) {
@@ -464,10 +494,8 @@ async function loadDashboard(){
     }
   }
 
-  // stok tipis
   const lowStock = state.products.filter(p => Number(p.stok||0) <= 5);
 
-  // tampilkan KPI (lokal)
   elProfitToday.textContent = money(profitToday);
   elOmzetToday.textContent  = money(omzetToday);
   elHppToday.textContent    = money(hppToday);
@@ -477,7 +505,6 @@ async function loadDashboard(){
   elOmzet30.textContent  = money(omzet30);
   elHpp30.textContent    = money(hpp30);
 
-  // trend 30 hari (array tanggal berurutan)
   const trend = [];
   for (let i=29;i>=0;i--){
     const d = new Date(now); d.setDate(now.getDate()-i);
@@ -487,7 +514,6 @@ async function loadDashboard(){
   }
   drawProfitChart(trend);
 
-  // top kategori
   catList.innerHTML = '';
   const cats = [...catAgg.entries()].sort((a,b)=>b[1]-a[1]).slice(0,6);
   if (!cats.length) catList.innerHTML = `<div class="muted">Belum ada data kategori.</div>`;
@@ -497,7 +523,6 @@ async function loadDashboard(){
     catList.appendChild(row);
   }
 
-  // low stock
   lowStockList.innerHTML = '';
   if (!lowStock.length) lowStockList.innerHTML = `<div class="muted">Semua stok aman.</div>`;
   else for (const p of lowStock) {
@@ -506,7 +531,6 @@ async function loadDashboard(){
     lowStockList.appendChild(row);
   }
 
-  // transaksi terbaru (dari lokal)
   recentList.innerHTML = '';
   for (const h of hist.slice(0,6)) {
     const it = document.createElement('div'); it.className='item';
@@ -518,13 +542,9 @@ async function loadDashboard(){
       <div class="strong money">${money(h.total)}</div>`;
     recentList.appendChild(it);
   }
-
-  // (opsional) kalau punya getStats backend:
-  // try { const s = await getStats30d(); /* merge/replace KPI */ } catch {}
 }
 
 function parseIdDate(str){
-  // "7/9/2025" (id-ID) -> Date at 00:00
   const [d,m,y] = str.split('/').map(n=>parseInt(n,10));
   const dt = new Date(y, (m-1), d); dt.setHours(0,0,0,0); return dt;
 }
@@ -540,7 +560,6 @@ function drawProfitChart(points){
   const pad = 10;
   const stepX = (W - pad*2) / Math.max(1, points.length-1);
 
-  // area background
   chartCtx.beginPath();
   points.forEach((p,i)=>{
     const x = pad + i*stepX;
@@ -554,7 +573,6 @@ function drawProfitChart(points){
   chartCtx.fillStyle = 'rgba(37, 99, 235, .12)';
   chartCtx.fill();
 
-  // line
   chartCtx.beginPath();
   points.forEach((p,i)=>{
     const x = pad + i*stepX;

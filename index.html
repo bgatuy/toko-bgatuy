@@ -13,19 +13,17 @@
     <div class="brand">Toko Bg Atuy</div>
 
     <nav class="tabs">
-  <button id="tab-pos" class="tab tab-active">
-    <span class="tab-icon">🛒</span>
-    <span>Kasir</span>
-  </button>
-  <button id="tab-dashboard" class="tab">
-    <span class="tab-icon">📊</span>
-    <span>Dashboard</span>
-  </button>
-</nav>
-
+      <button id="tab-pos" class="tab tab-active">
+        <span class="tab-icon">🛒</span>
+        <span>Kasir</span>
+      </button>
+      <button id="tab-dashboard" class="tab">
+        <span class="tab-icon">📊</span>
+        <span>Dashboard</span>
+      </button>
+    </nav>
 
     <div class="grow"></div>
-
     <button id="btn-open-add" class="btn btn-primary">+ Tambah Produk</button>
   </header>
 
@@ -164,16 +162,21 @@
       <input class="input" name="id" placeholder="PXXXX" />
 
       <label class="label">Nama produk</label>
-      <input class="input" name="name" placeholder="Beras BMW 5KG" required />
+      <input class="input" id="nameInput" name="name" list="productList" placeholder="Beras BMW 5KG" required />
+      <datalist id="productList"></datalist>
+
+      <label class="label">Kategori</label>
+      <input class="input" id="kategoriInput" name="kategori" list="kategoriList" placeholder="Beras / Minyak / dll" />
+      <datalist id="kategoriList"></datalist>
 
       <div class="flex2">
         <div>
           <label class="label">Harga Modal</label>
-          <input class="input" name="hargaModal" inputmode="numeric" placeholder="95000" />
+          <input class="input" id="hargaModalInput" name="hargaModal" inputmode="numeric" placeholder="95000" />
         </div>
         <div>
           <label class="label">Harga Jual</label>
-          <input class="input" name="harga" inputmode="numeric" placeholder="115000" />
+          <input class="input" id="hargaInput" name="harga" inputmode="numeric" placeholder="115000" />
         </div>
       </div>
 

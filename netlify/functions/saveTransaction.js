@@ -14,7 +14,15 @@ const err = (e, code = 500) => ({
 
 const parseNum = (v) => Number(String(v ?? '').replace(/[^\d.-]/g, '')) || 0;
 const norm = (s) => String(s || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
-const toCol = (idx) => { let n = idx + 1, s = ''; while (n) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
+const toCol = (idx) => { 
+  let n = idx + 1, s = ''; 
+  while (n) { 
+    const r = (n - 1) % 26; 
+    s = String.fromCharCode(65 + r) + s; 
+    n = Math.floor((n - 1) / 26); 
+  } 
+  return s; 
+};
 
 function getEnv() {
   const SERVICE_EMAIL =
@@ -119,13 +127,47 @@ exports.handler = async (event) => {
       ]);
     }
 
-    await sheets.spreadsheets.values.append({
+    // append baris transaksi
+    const appendRes = await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_TRANSAKSI}!A:N`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
       requestBody: { values },
     });
+
+    // === Auto clear formatting baris baru ===
+    try {
+      const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
+      const sheet = sheetMeta.data.sheets.find(s => s.properties.title === SHEET_TRANSAKSI);
+      if (sheet) {
+        const sheetId = sheet.properties.sheetId;
+        const lastRow = appendRes.data.updates.updatedRange.match(/\d+$/);
+        const endRowIndex = lastRow ? parseInt(lastRow[0], 10) : null;
+        if (endRowIndex) {
+          await sheets.spreadsheets.batchUpdate({
+            spreadsheetId: SPREADSHEET_ID,
+            requestBody: {
+              requests: [
+                {
+                  repeatCell: {
+                    range: {
+                      sheetId,
+                      startRowIndex: endRowIndex - values.length,
+                      endRowIndex: endRowIndex,
+                    },
+                    cell: { userEnteredFormat: {} },
+                    fields: "userEnteredFormat",
+                  },
+                },
+              ],
+            },
+          });
+        }
+      }
+    } catch (e) {
+      console.warn('Gagal clear formatting:', e.message);
+    }
 
     // === Kurangi stok (ID prioritas, fallback nama) — hanya sel stok
     const needByRow = new Map(); // rowIdx -> totalQty
@@ -173,7 +215,7 @@ exports.handler = async (event) => {
       totalOmzet,
       totalHpp,
       totalProfit: totalOmzet - totalHpp,
-      updatedRows, // dipakai app.js buat update stok UI
+      updatedRows,
     });
   } catch (e) {
     return err(e);
