@@ -307,11 +307,8 @@ async function onFinish(){
   try { res = await saveTransaction(trx); }
   catch(e){ console.warn('saveTransaction error:', e.message); }
 
-  // cetak struk
-  const str = buildReceipt(trx);
-  const w = window.open('', '_blank', 'width=400,height=600');
-  w.document.write(`<pre style="font:14px/1.25 monospace;white-space:pre-wrap">${str}</pre>`);
-  w.document.close(); w.focus(); w.print();
+  // ==== CETAK STRUK via modal internal ====
+  showReceipt(trx);
 
   // sync stok dari server
   if (res && Array.isArray(res.updatedRows)) {
@@ -340,26 +337,58 @@ async function onFinish(){
   renderProducts(); renderCart();
 }
 
-function buildReceipt(trx){
-  const W=40, line='-'.repeat(W), money2 = n => `Rp ${Number(n||0).toLocaleString('id-ID')}`;
-  let body = '';
-  for (const it of trx.transaksi){
-    const sub = money2(it.harga*it.qty), left = `${it.qty} x ${money2(it.harga)}`;
-    const pad = Math.max(1, W - left.length - sub.length);
-    body += `${it.name}\n${left}${' '.repeat(pad)}${sub}\n`;
-  }
-  const padR = (label,val)=>`${label}${' '.repeat(Math.max(1,W-label.length-val.length))}${val}`;
-  return [
-    'TOKO BG ATUY','Jl. Jalanin Aja Dulu', line,
-    `Tanggal : ${trx.tanggal}`,
-    `Waktu   : ${trx.waktu}`,
-    `ID      : ${trx.transactionId}`,
-    line, body.trim(), line,
-    padR('Total',   money2(trx.total)),
-    padR('Tunai',   money2(trx.cash)),
-    padR('Kembali', money2(trx.change)),
-    line, 'Terima kasih :)',
-  ].join('\n');
+// Init modal sekali saat load
+window.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('receiptModal');
+  if (!modal) return;
+
+  // Pastikan modal tertutup di awal
+  if (typeof modal.close === "function") modal.close();
+
+  // Tombol tutup
+  document.getElementById('btnClose').addEventListener('click', () => modal.close());
+
+  // Klik luar area -> close
+  modal.addEventListener('click', e => {
+    if (e.target.tagName === 'DIALOG') modal.close();
+  });
+
+  // Tombol print
+  document.getElementById('btnPrint').addEventListener('click', () => window.print());
+});
+
+// Fungsi show receipt
+function showReceipt(trx) {
+  const money2 = n => `Rp ${Number(n||0).toLocaleString('id-ID')}`;
+
+  const html = `
+    <div class="struk">
+      <div class="center strong">TOKO BG ATUY</div>
+      <div class="center">Jl. Jalanin Aja Dulu</div>
+      <div class="line"></div>
+      <div>Tanggal : ${trx.tanggal}</div>
+      <div>Waktu   : ${trx.waktu}</div>
+      <div>ID      : ${trx.transactionId}</div>
+      <div class="line"></div>
+      ${trx.transaksi.map(it => `
+        <div class="row">
+          <span>${it.name}</span>
+          <span>${money2(it.harga * it.qty)}</span>
+        </div>
+        <div class="subrow">${it.qty} x ${money2(it.harga)}</div>
+      `).join('')}
+      <div class="line"></div>
+      <div class="row"><span>Total</span><span>${money2(trx.total)}</span></div>
+      <div class="row"><span>Tunai</span><span>${money2(trx.cash)}</span></div>
+      <div class="row"><span>Kembali</span><span>${money2(trx.change)}</span></div>
+      <div class="line"></div>
+      <div class="center">Terima kasih :)</div>
+    </div>
+  `;
+
+  const modal = document.getElementById('receiptModal');
+  modal.querySelector('.receipt').innerHTML = html;
+  modal.showModal();
 }
 
 /* =========================

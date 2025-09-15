@@ -273,6 +273,94 @@ h2,h3{ margin:0 0 10px }
 .recent .item{ padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between }
 .recent .muted{ font-size:12px }
 
+/* Modal */
+#receiptModal {
+  border: none;
+  padding: 0;
+}
+
+#receiptModal::backdrop {
+  background: rgba(0, 0, 0, 0.5); /* backdrop gelap */
+}
+
+/* Kotak preview */
+.receipt-card {
+  background: #fff;
+  padding: 16px;
+  border-radius: 12px;
+  border: 5px solid #ddd;
+  width: 320px;       /* lebih proporsional */
+  max-width: 90vw;
+  margin: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;          /* jarak antar isi */
+  align-items: center;
+  justify-content: center;   /* ⬅️ isi ditengah vertical */
+
+  min-height: 420px; /* ⬅️ bikin kotaknya lebih tinggi */
+}
+
+/* Struk tetap center */
+.receipt {
+  width: 58mm;
+  background: #fff;
+  padding: 12px;
+  font-family: monospace;
+  font-size: 13px;
+  line-height: 1.4;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  margin: 0 auto;     /* center di dalam card */
+}
+
+/* Tombol tetap normal */
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  flex: none;       /* supaya gak ikut melar */
+}
+
+#btnPrint { background: #2563eb; color: #fff; }
+#btnClose { background: #dc2626; color: #fff; }
+
+.receipt .center { text-align: center; }
+.receipt .strong { font-weight: bold; }
+.receipt .line { border-top: 1px dashed #000; margin: 6px 0; }
+.receipt .row { display: flex; justify-content: space-between; }
+.receipt .subrow { font-size: 11px; color: #555; margin-left: 4px; }
+.receipt div { margin: 2px 0; }
+
+/* Print mode */
+@media print {
+  body * { visibility: hidden; }
+  #receiptModal, #receiptModal * { visibility: visible; }
+  #receiptModal {
+    position: absolute;
+    left: 0; top: 0;
+  }
+  .receipt-card {
+    box-shadow: none;
+    padding: 0;
+    border-radius: 0;
+    width: auto;
+  }
+  .actions { display: none; }
+}
+
+
 /* ========== Responsif ========== */
 @media (max-width: 1024px){
   .grid{ grid-template-columns: repeat(3, minmax(0,1fr)) }
