@@ -32,6 +32,17 @@ function formatCurrencyInput(el, toStateCb) {
   });
 }
 
+// Masker ribuan untuk field di modal (tidak menyentuh summary/cart)
+function maskCurrency(el){
+  if (!el || el.dataset.maskCurrency === '1') return; // cegah double-bind
+  el.addEventListener('input', () => {
+    const raw = parseNum(el.value);
+    el.value = raw ? raw.toLocaleString('id-ID') : '';
+  });
+  el.dataset.maskCurrency = '1';
+}
+
+
 /* =========================
    DOM REFS
    ========================= */
@@ -618,8 +629,9 @@ function closeAddModal(){
 }
 
 /* Isi datalist & auto-fill (ID/Nama) + auto CAPS */
+/* Isi datalist & auto-fill (ID/Nama) + auto CAPS + format ribuan */
 function populateSuggestions() {
-  // Datalist produk (opsional)
+  // datalist produk
   const productList = document.getElementById('productList');
   if (productList) {
     productList.innerHTML = '';
@@ -630,7 +642,7 @@ function populateSuggestions() {
     }
   }
 
-  // Datalist kategori (opsional)
+  // datalist kategori
   const kategoriList = document.getElementById('kategoriList');
   if (kategoriList) {
     kategoriList.innerHTML = '';
@@ -642,7 +654,7 @@ function populateSuggestions() {
     }
   }
 
-  // refs input
+  // refs
   const idInput       = document.getElementById('idInput');
   const nameInput     = document.getElementById('nameInput');
   const kategoriInput = document.getElementById('kategoriInput');
@@ -650,46 +662,63 @@ function populateSuggestions() {
   const hargaInp      = document.getElementById('hargaInput');
   const stokInput     = document.getElementById('stokInput');
 
+  // masker ribuan untuk input harga (saat user mengetik)
+  maskCurrency(hargaModalInp);
+  maskCurrency(hargaInp);
+
   // auto CAPS untuk 3 field
   enforceUppercase(idInput);
   enforceUppercase(nameInput);
   enforceUppercase(kategoriInput);
 
-  // helper isi form penuh dari produk
-  function fillFromProduct(p){
+  // helper: set angka -> tampil ribuan
+  const setMoney = (el, n) => {
+    if (!el) return;
+    const raw = Number(n || 0);
+    el.value = raw ? raw.toLocaleString('id-ID') : '';
+  };
+
+  // helper: isi form penuh dari data produk (TERMASUK format harga)
+  function fillFromProduct(p) {
     if (!p) return;
-    if (idInput)       idInput.value       = (p.id || '').toUpperCase();
-    if (nameInput)     nameInput.value     = (p.name || '').toUpperCase();
-    if (kategoriInput) kategoriInput.value = (p.kategori || 'Lainnya').toUpperCase();
-    if (hargaModalInp) hargaModalInp.value = p.hargaModal || '';
-    if (hargaInp)      hargaInp.value      = p.harga || '';
+    if (idInput)       idInput.value       = String(p.id || '').toUpperCase();
+    if (nameInput)     nameInput.value     = String(p.name || '').toUpperCase();
+    if (kategoriInput) kategoriInput.value = String(p.kategori || 'Lainnya').toUpperCase();
+    setMoney(hargaModalInp, p.hargaModal);
+    setMoney(hargaInp,      p.harga);
     if (stokInput) {
-      // TAMPILKAN sisa stok saat ini + tetap kosongkan kolom qty restok
-      stokInput.value = '';
+      stokInput.value = ''; // qty restok tetap kosong
       stokInput.placeholder = `Qty Restok (sisa stok: ${Number(p.stok || 0)})`;
-      // Kalau lo MAU diisi otomatis dengan sisa stok saat ini, un-comment baris di bawah:
-      // stokInput.value = String(Number(p.stok || 0));
     }
   }
 
-  // Ketik/ubah ID → autofill full
-  if (idInput) {
-    idInput.onchange = () => {
-      const id = (idInput.value || '').trim().toUpperCase();
-      const p = state.products.find(x => String(x.id || '').trim().toUpperCase() === id);
-      fillFromProduct(p);
-    };
+  // cari produk by ID
+  function findById(id) {
+    const up = String(id || '').trim().toUpperCase();
+    return state.products.find(x => String(x.id || '').trim().toUpperCase() === up);
   }
 
-  // Pilih/ubah Nama → autofill full (termasuk ID)
+  // cari produk by Nama (pakai map)
+  function findByName(nm) {
+    const key = String(nm || '').trim().toLowerCase();
+    return state.productsByName.get(key);
+  }
+
+  // event: ubah ID -> auto-fill
+  if (idInput) {
+    idInput.addEventListener('change', () => fillFromProduct(findById(idInput.value)));
+  }
+
+  // event: ketik/ubah Nama -> auto-fill (tanpa handler ganda)
   if (nameInput) {
-    nameInput.onchange = () => {
-      const key = (nameInput.value || '').trim().toLowerCase();
-      const p = state.productsByName.get(key);
-      fillFromProduct(p);
-    };
+    const handler = () => fillFromProduct(findByName(nameInput.value));
+    nameInput.addEventListener('input', handler);
+    nameInput.addEventListener('change', handler);
+    // kalau sudah ada nilai saat modal dibuka
+    if (nameInput.value) handler();
   }
 }
+
 
 /* =========================
    PRODUCTS
