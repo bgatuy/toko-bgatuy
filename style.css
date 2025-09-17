@@ -361,19 +361,19 @@ h2,h3{ margin:0 0 10px; }
 
 /* tombol kuning “Tahan Transaksi” (optional, biar konsisten) */
 #holdButtonsRow #btnHold{
-  background:#F59E0B;      /* amber-500 */
-  border:1px solid #F59E0B;
+  background: #f7a820ff;      /* amber-500 */
+  border:1px solid #f7a820ff;
   color:#fff;
 }
 #holdButtonsRow #btnHold:hover{ filter:brightness(1.05); }
 
 /* tombol “Lihat Transaksi Tertahan” (ghost) */
 #holdButtonsRow #btn-open-hold{
-  background:#fff;
-  border:1px solid #e5e7eb; /* slate-200 */
-  color:#374151;            /* gray-700 */
+  background: #54c945ff;
+  border:1px solid #54c945ff; /* slate-200 */
+  color: #fff;            /* gray-700 */
 }
-#holdButtonsRow #btn-open-hold:hover{ background:#f9fafb; }
+#holdButtonsRow #btn-open-hold:hover{ filter:brightness(1.05); }
 
 /* ====== Tombol di dalam modal #holdModal saja ====== */
 #holdModal .btn{
