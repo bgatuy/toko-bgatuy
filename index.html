@@ -12,23 +12,22 @@
   <header class="topbar">
     <div class="brand">Toko Bg Atuy</div>
 
-    <nav class="tabs">
-      <button id="tab-pos" class="tab tab-active">
-        <span class="tab-icon">🛒</span>
-        <span>Kasir</span>
+    <nav class="tabs" aria-label="Navigasi utama">
+      <button id="tab-pos" class="tab tab-active" type="button">
+        <span class="tab-icon">🛒</span><span>Kasir</span>
       </button>
-      <button id="tab-dashboard" class="tab">
-        <span class="tab-icon">📊</span>
-        <span>Dashboard</span>
+      <button id="tab-dashboard" class="tab" type="button">
+        <span class="tab-icon">📊</span><span>Dashboard</span>
       </button>
     </nav>
 
     <div class="grow"></div>
-    <button id="btn-open-add" class="btn btn-primary">+ Tambah Produk</button>
+    <button id="btn-open-add" class="btn btn-primary" type="button">+ Tambah Produk</button>
   </header>
 
   <!-- ============== POS VIEW ============== -->
   <main id="view-pos" class="container">
+    <!-- Kiri: Produk -->
     <section class="column">
       <div class="card">
         <div class="section-header">
@@ -44,23 +43,51 @@
       </div>
     </section>
 
+    <!-- Kanan: Keranjang + Pembayaran -->
     <aside class="column">
       <div class="card">
         <h3>Keranjang</h3>
         <div id="cartList" class="cart"></div>
       </div>
 
-      <div class="card">
+      <div id="paymentCard" class="card">
         <h3>Pembayaran</h3>
+
         <div class="summary">
           <div class="row">
             <div class="muted">Subtotal</div>
             <div id="subtotal" class="money">Rp 0</div>
           </div>
+
+          <!-- Diskon -->
+          <div class="row">
+            <div class="muted">Diskon</div>
+          </div>
+          <div class="flex2">
+            <input id="discountInput" class="input right" inputmode="numeric" placeholder="0" />
+            <select id="discountType" class="input">
+              <option value="rp">Rp</option>
+              <option value="percent">%</option>
+            </select>
+          </div>
+
           <div class="row">
             <div class="muted">Total</div>
             <div id="total" class="money strong">Rp 0</div>
           </div>
+
+          <!-- Metode Pembayaran -->
+          <div class="row">
+            <div class="muted">Metode Pembayaran</div>
+          </div>
+          <select id="paymentMethod" class="input">
+            <option value="Cash">Cash</option>
+            <option value="QRIS">QRIS</option>
+            <option value="Transfer">Transfer</option>
+            <option value="Debit/Credit Card">Debit/Credit Card</option>
+            <option value="Piutang">Piutang</option>
+          </select>
+
           <div class="row">
             <div class="muted">Tunai (Rp)</div>
           </div>
@@ -71,33 +98,35 @@
             <div id="change" class="money">Rp 0</div>
           </div>
 
-          <button id="btnFinish" class="btn btn-primary wide">🧾 Simpan & Cetak</button>
+          <!-- Aksi checkout -->
+          <div class="checkout-actions">
+            <button id="btnFinish" class="btn btn-primary wide" type="button">Proses Bayar</button>
+            <button id="btnHold" class="btn btn-hold wide" type="button">⏸ Tahan Transaksi</button>
+            <button id="btn-open-hold" class="btn btn-hold btn-md" type="button">📥 Lihat Transaksi Tertahan</button>
+          </div>
         </div>
       </div>
     </aside>
   </main>
 
   <!-- Modal Preview Struk -->
-<dialog id="receiptModal">
-  <div class="receipt-card">
-    <div class="receipt"></div>
-    <div class="actions">
-      <button id="btnPrint">🖨 Cetak</button>
-      <button id="btnClose">❌ Tutup</button>
+  <dialog id="receiptModal">
+    <div class="receipt-card">
+      <div class="receipt"></div>
+      <div class="actions">
+        <button id="btnPrint" type="button">🖨 Cetak</button>
+        <button id="btnClose" type="button">❌ Tutup</button>
+      </div>
     </div>
-  </div>
-</dialog>
-
+  </dialog>
 
   <!-- ============== DASHBOARD VIEW ============== -->
   <main id="view-dashboard" class="container hidden">
     <section class="column wide">
-      <!-- tombol reset histori lokal -->
       <div class="mb-8">
-        <button id="btn-reset-local" class="btn">Reset Histori Lokal</button>
+        <button id="btn-reset-local" class="btn" type="button">Reset Histori Lokal</button>
       </div>
 
-      <!-- KPI Harian -->
       <div class="kpi-grid">
         <div class="kpi-card">
           <div class="kpi-title">Keuntungan Hari Ini</div>
@@ -121,7 +150,6 @@
         </div>
       </div>
 
-      <!-- KPI 30 hari -->
       <div class="kpi-grid">
         <div class="kpi-card subtle">
           <div class="kpi-title">Keuntungan Total (30 hari)</div>
@@ -140,13 +168,11 @@
         </div>
       </div>
 
-      <!-- Trend -->
       <div class="card">
         <h3>Trend Laba (30 hari)</h3>
         <canvas id="profitChart" height="160"></canvas>
       </div>
 
-      <!-- Top kategori & Stok tipis & Transaksi terbaru -->
       <div class="grid-2">
         <div class="card">
           <h3>Top Kategori by Laba</h3>
@@ -166,42 +192,54 @@
   </main>
 
   <!-- Modal Tambah/Restock Produk -->
-  <dialog id="addModal" class="modal">
-    <form method="dialog" class="modal-card" id="addForm">
-      <h3>Tambah Produk</h3>
+<dialog id="addModal" class="modal">
+  <form method="dialog" class="modal-card" id="addForm">
+    <h3>Tambah Produk</h3>
 
-      <label class="label">ID (unik) — kosongkan biar auto</label>
-      <input class="input" name="id" placeholder="PXXXX" />
+    <label class="label">ID (unik) — kosongkan biar auto</label>
+    <input class="input upper" id="idInput" name="id" placeholder="PXXXX" autocomplete="off" autocapitalize="characters" />
 
-      <label class="label">Nama produk</label>
-      <input class="input" id="nameInput" name="name" list="productList" placeholder="Beras BMW 5KG" required />
-      <datalist id="productList"></datalist>
+    <label class="label">Nama produk</label>
+    <input class="input upper" id="nameInput" name="name" list="productList" required />
+    <datalist id="productList"></datalist>
 
-      <label class="label">Kategori</label>
-      <input class="input" id="kategoriInput" name="kategori" list="kategoriList" placeholder="Beras / Minyak / dll" />
-      <datalist id="kategoriList"></datalist>
+    <label class="label">Kategori</label>
+    <input class="input upper" id="kategoriInput" name="kategori" list="kategoriList" />
+    <datalist id="kategoriList"></datalist>
 
-      <div class="flex2">
-        <div>
-          <label class="label">Harga Modal</label>
-          <input class="input" id="hargaModalInput" name="hargaModal" inputmode="numeric" placeholder="95000" />
-        </div>
-        <div>
-          <label class="label">Harga Jual</label>
-          <input class="input" id="hargaInput" name="harga" inputmode="numeric" placeholder="115000" />
-        </div>
+    <div class="flex2">
+      <div>
+        <label class="label">Harga Modal</label>
+        <input class="input" id="hargaModalInput" name="hargaModal" inputmode="numeric" />
       </div>
+      <div>
+        <label class="label">Harga Jual</label>
+        <input class="input" id="hargaInput" name="harga" inputmode="numeric" />
+      </div>
+    </div>
 
-      <label class="label">Tambah stok (mis. 10)</label>
-      <input class="input" name="stok" inputmode="numeric" placeholder="10" />
+    <label class="label">Stok</label>
+    <input class="input" id="stokInput" name="stok" inputmode="numeric" />
 
+    <div class="modal-actions">
+      <button type="submit" class="btn btn-primary">Simpan</button>
+      <button type="button" id="btnCloseAdd" class="btn">Batal</button>
+    </div>
+  </form>
+</dialog>
+
+
+  <!-- Modal Transaksi Tertahan (satu saja, tidak dobel) -->
+  <dialog id="holdModal" class="modal">
+    <div class="modal-card">
+      <h3 style="margin:0 0 8px">Transaksi Tertahan</h3>
+      <div id="holdList" class="list" style="max-height:340px;overflow:auto"></div>
       <div class="modal-actions">
-        <button class="btn" value="close" type="button" id="btnCloseAdd">Batal</button>
-        <button class="btn btn-primary" id="btnSaveAdd" type="submit">Simpan</button>
+        <button id="btnCloseHold" class="btn" type="button">Tutup</button>
       </div>
-    </form>
+    </div>
   </dialog>
 
-  <script type="module" src="app.js"></script>
+  <script src="app.js" type="module"></script>
 </body>
 </html>

@@ -1,100 +1,101 @@
-/* ========== Reset ringan + font ==========
-   (biar nggak jatuh ke Times New Roman) */
-*,*::before,*::after{ box-sizing:border-box }
-html,body{ height:100% }
-body,h1,h2,h3,h4,p,figure,blockquote,dl,dd{ margin:0 }
-ul[role='list'],ol[role='list']{ list-style:none }
-img, picture{ max-width:100%; display:block }
-button,input,select,textarea{ font:inherit }
-a{ color:inherit; text-decoration:none }
+/* =========================================================
+   RESET RINGAN + FONTS
+   ========================================================= */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body, h1, h2, h3, h4, p, figure, blockquote, dl, dd { margin: 0; }
+ul[role="list"], ol[role="list"] { list-style: none; padding: 0; }
+img, picture { max-width: 100%; display: block; }
+button, input, select, textarea { font: inherit; }
+a { color: inherit; text-decoration: none; }
 
-/* ========== Token warna ==========
-   tema biru modern + netral */
+/* =========================================================
+   TOKENS / THEME
+   ========================================================= */
 :root{
-  --bg: #f7f8fa;          /* background halaman */
-  --card: #ffffff;        /* kartu putih */
-  --ink: #0f172a;         /* teks utama (slate-900) */
-  --muted: #6b7280;       /* teks sekunder (gray-500/600) */
-  --border: #e5e7eb;      /* garis halus */
+  /* Surfaces & text */
+  --bg: #f7f8fa;
+  --card: #ffffff;
+  --ink: #0f172a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
 
-  --brand: #2563eb;       /* blue-600 */
-  --brand-700: #1d4ed8;   /* blue-700 */
-  --ring: rgba(96,165,250,.40); /* focus ring (blue-400) */
+  /* Brand & states */
+  --brand: #2563eb;      /* blue-600 */
+  --brand-700: #1d4ed8;  /* blue-700 */
+  --ring: rgba(96,165,250,.40); /* blue-400 */
 
-  --danger: #e11d48;      /* rose-600 */
-  --ok: #059669;          /* emerald-600 */
-  --warn: #d97706;        /* amber-600 */
+  --danger: #e11d48;   /* rose-600 */
+  --ok: #059669;       /* emerald-600 */
+  --warn: #d97706;     /* amber-600 */
 
+  /* Shape */
   --radius: 16px;
 }
 
-/* ========== Global ==========
-   set font & warna dasar */
-html{ scroll-behavior:smooth }
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+html { scroll-behavior: smooth; }
 body{
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont,
                "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji",
-               "Segoe UI Emoji"; 
-  color:var(--ink);
+               "Segoe UI Emoji";
+  color: var(--ink);
   background:
     radial-gradient(900px 400px at 100% 0%, rgba(37,99,235,.06), transparent 45%),
     linear-gradient(180deg, #fafafa, #f6f7f9);
   background-attachment: fixed;
 }
 
-/* util */
-.hidden{ display:none !important }
-.grow{ flex:1 }
-.money{ font-variant-numeric: tabular-nums }
-.strong{ font-weight:800 }
-.muted{ color:var(--muted); font-size:14px }
-.mb-8{ margin-bottom:8px }
-.mb-4{ margin-bottom:4px }
+/* Utilities */
+.hidden{ display:none !important; }
+.grow{ flex:1; }
+.money{ font-variant-numeric: tabular-nums; }
+.strong{ font-weight:800; }
+.muted{ color:var(--muted); font-size:14px; }
+.mb-8{ margin-bottom:8px; }
+.mb-4{ margin-bottom:4px; }
 
-/* ========== Topbar ========== */
+/* =========================================================
+   TOPBAR & TABS
+   ========================================================= */
 .topbar{
-  position:sticky; top:0; z-index:10;
-  display:flex; align-items:center; gap:20px;
-  padding:10px 16px;
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: 20px;
+  padding: 10px 16px;
   background: rgba(255,255,255,.85);
   backdrop-filter: blur(6px);
-  border-bottom:1px solid var(--border);
+  border-bottom: 1px solid var(--border);
 }
-.brand{ font-weight:800 }
+.brand{ font-weight: 800; }
 
-/* Tabs (Kasir / Dashboard) */
-.tabs{ display:flex; gap:8px }
+.tabs{ display:flex; gap:8px; }
 .tab{
+  display:inline-flex; align-items:center; gap:6px;
   padding:8px 15px; border-radius:10px;
   background:#f1f5f9; color:#0f172a;
   border:1px solid #e5e7eb; cursor:pointer;
-  transition:filter .15s;
+  font-weight:500; font-size:15px;
+  transition: filter .15s;
 }
-.tab:hover{ filter:brightness(.98) }
-.tab-active{ background:var(--brand); color:#fff; border-color:transparent }
+.tab:hover{ filter:brightness(.98); }
+.tab-active{ background:var(--brand); color:#fff; border-color:transparent; }
 
-.tabs .tab {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
-  font-size: 15px;
-}
-.tabs .tab-icon {
-  font-size: 14px; /* sesuaikan biar pas */
-  line-height: 1;
-}
-
-/* ========== Layout grid dua kolom untuk POS ========== */
+/* =========================================================
+   LAYOUT (POS)
+   ========================================================= */
 .container{
   max-width:1500px; margin:16px auto; padding:0 16px;
   display:grid; grid-template-columns:1.5fr 1fr; gap:16px;
 }
-.container.hidden{ display:none }
-.column{ display:flex; flex-direction:column; gap:16px }
-.column.wide{ grid-column:1 / -1 }
+.container.hidden{ display:none; }
+.column{ display:flex; flex-direction:column; gap:16px; }
+.column.wide{ grid-column:1 / -1; }
 
-/* ========== Card umum ========== */
+/* =========================================================
+   CARDS
+   ========================================================= */
 .card{
   background:var(--card);
   border:2px solid var(--border);
@@ -102,272 +103,328 @@ body{
   padding:14px;
   box-shadow:0 1px 2px rgba(0,0,0,.03);
 }
-.section-header{ display:flex; align-items:center; justify-content:space-between }
-h2,h3{ margin:0 0 10px }
+.section-header{ display:flex; align-items:center; justify-content:space-between; }
+h2,h3{ margin:0 0 10px; }
 
-/* ========== Input & Button ========== */
+/* =========================================================
+   FORM ELEMENTS & BUTTONS
+   ========================================================= */
 .input{
   width:100%; padding:10px 12px; border-radius:12px;
   border:1px solid var(--border); background:#f3f4f6;
   outline:none; color:var(--ink);
 }
-.input:focus{ box-shadow:0 0 0 3px var(--ring); background:#fff }
-.input.right{ text-align:right }
+.input.right{ text-align:right; }
+.input:focus{ box-shadow:0 0 0 3px var(--ring); background:#fff; }
 
 .btn{
   border:1px solid var(--border); background:#fff; color:var(--ink);
   padding:8px 14px; border-radius:12px; cursor:pointer;
   transition: filter .15s, transform .08s;
 }
-.btn:hover{ filter:brightness(.98) }
-.btn:active{ transform:translateY(1px) }
-.btn-primary{ background:var(--brand); color:#fff; border-color:transparent }
-.btn-primary:hover{ background:var(--brand-700) }
-.btn.danger{ background:#fff; border-color:#fecdd3; color:var(--danger) }
-.btn.wide{ width:100% }
+.btn:hover{ filter:brightness(.98); }
+.btn:active{ transform:translateY(1px); }
+.btn:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
 
-/* ===== Utilities ukuran tombol ===== */
-.btn-sm { padding: 6px 10px; font-size: 12px; border-radius: 10px; }
-.btn-md { padding: 8px 14px; font-size: 14px; border-radius: 12px; } /* default kamu */
-.btn-lg { padding: 12px 18px; font-size: 15px; border-radius: 14px; }
-.btn-xl { padding: 14px 22px; font-size: 16px; border-radius: 16px; }
+.btn-primary{ background:var(--brand); color:#fff; border-color:transparent; }
+.btn-primary:hover{ background:var(--brand-700); }
 
-/* ===== Tombol khusus: Tambah (di kartu produk) ===== */
-.btn-add {
-  /* ukuran bebas kamu atur di sini */
-  padding: 5px 15px;
-  font-size: 15px;
-  border-radius: 10px;
-  width: 100%;              /* biar tombol kartu melebar rapih */
-}
-#productGrid .card-prod .btn-add { /* jaga-jaga scope ke grid produk */
-  margin-top: 10px;
-}
+.btn.danger{ background:#fff; border-color:#fecdd3; color:var(--danger); }
 
-/* ===== Tombol icon kecil (trash) – biar gak kegedean lain-lain */
-.btn-icon {
-  padding: 6px; width: 32px; height: 32px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 10px;
+.btn.wide{ width:100%; font-size:16px; font-weight:600; }
+
+/* Ukuran */
+.btn-sm{ padding:6px 10px; font-size:12px; border-radius:10px; }
+.btn-md{ padding:8px 14px; font-size:14px; border-radius:12px; } /* default */
+.btn-lg{ padding:12px 18px; font-size:15px; border-radius:14px; }
+.btn-xl{ padding:14px 22px; font-size:16px; border-radius:16px; }
+
+/* Icon-only */
+.btn-icon{
+  padding:6px; width:32px; height:32px;
+  display:inline-flex; align-items:center; justify-content:center;
+  border-radius:10px;
 }
 
+/* Tombol kartu produk */
+.btn-add{ padding:5px 15px; font-size:15px; border-radius:10px; width:100%; }
+#productGrid .card-prod .btn-add{ margin-top:10px; }
 
-/* ========== Produk: search + grid + kartu ========== */
-.search{ margin:10px 0 14px }
+/* =========================================================
+   PRODUK (search + grid + card)
+   ========================================================= */
+.search{ margin:10px 0 14px; }
+
 .grid{
-  display:grid; grid-template-columns: repeat(4, minmax(0,1fr));
-  gap:12px;
+  display:grid; gap:12px;
+  grid-template-columns: repeat(4, minmax(0,1fr));
 }
+
 .card-prod{
   background:var(--card); border:1px solid var(--border);
   border-radius:16px; padding:12px;
   display:flex; flex-direction:column; gap:8px;
   transition: box-shadow .15s, transform .1s;
 }
-.card-prod:hover{ box-shadow:0 6px 14px rgba(2,6,23,.08); transform:translateY(-1px) }
+.card-prod:hover{ box-shadow:0 6px 14px rgba(2,6,23,.08); transform:translateY(-1px); }
 
-/* badge/pill kecil */
+/* Badge/Pill */
 .pill{
   display:inline-flex; align-items:center; gap:6px; font-size:11px;
   padding:3px 8px; border-radius:999px; border:1px solid var(--border); background:#fff;
 }
-.pill.ok{ background:#ecfdf5; color:var(--ok); border-color:#bbf7d0 }
-.pill.warn{ background:#fff7ed; color:var(--warn); border-color:#fed7aa }
-.pill.danger{ background:#fff1f2; color:var(--danger); border-color:#fecdd3 }
+.pill.ok{ background:#ecfdf5; color:var(--ok); border-color:#bbf7d0; }
+.pill.warn{ background:#fff7ed; color:var(--warn); border-color:#fed7aa; }
+.pill.danger{ background:#fff1f2; color:var(--danger); border-color:#fecdd3; }
 
 .prod-name{
   font-weight:600; font-size:14px; line-height:1.25;
-  min-height:2.2em; /* 2 lines clamp feel */
+  min-height:2.2em; /* setara 2 baris */
 }
-.prod-price{ font-size:14px; font-weight:700 } /* harga hitam (default var(--ink)) */
+.prod-price{ font-size:14px; font-weight:700; }
 
-/* ========== Keranjang ========== */
-/* container */
-.cart { max-height: 340px; overflow: auto; padding-right: 4px; }
-.cart::-webkit-scrollbar{ width:8px }
-.cart::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:10px }
+/* =========================================================
+   KERANJANG
+   ========================================================= */
+.cart{ max-height:340px; overflow:auto; padding-right:4px; }
+.cart::-webkit-scrollbar{ width:8px; }
+.cart::-webkit-scrollbar-thumb{ background:#e5e7eb; border-radius:10px; }
 
-/* row */
 .cart-row{
-  display: grid;
-  grid-template-columns: 1fr auto auto minmax(10px,auto); /* info | qty | hapus | harga */
-  gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
-  align-items: center;
+  display:grid;
+  grid-template-columns: 1fr auto auto auto; /* info | qty | hapus | harga */
+  gap:10px; padding:10px 0; border-bottom:1px solid var(--border);
+  align-items:center;
 }
 
-/* info kiri */
-.cart-info{ min-width: 0; }
+.cart-info{ min-width:0; }
 .cart-info .title{
-  font-weight: 600;
-  line-height: 1.2;
-  margin: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-weight:600; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.cart-info .meta{
-  display:block; margin-top:2px; font-size:12px; color:#7a8699;
-}
+.cart-info .meta{ display:block; margin-top:2px; font-size:12px; color:#7a8699; }
 
-/* qty group (–  [ 2 ]  +) */
-.cart-qty{
-  display: inline-flex; align-items: center; gap: 6px;
-  background:#f3f6ff; border:1px solid #dfe7ff; border-radius:10px; padding:4px 6px;
-}
-.cart-qty .btn{
-  width:28px; height:28px; border-radius:8px;
-  border:1px solid #d3dbeb; background:#fff; font-size:16px; line-height:1;
-  cursor:pointer;
-}
-.cart-qty .btn:active{ transform: translateY(1px); }
-.cart-qty .btn.is-disabled{ opacity:.45; pointer-events:none; }
-.cart-qty .input{
-  width:28px; text-align:center; border:0; background:transparent; font-weight:600;
-}
+.qty{ display:flex; align-items:center; gap:6px; }
+.qty .btn{ padding:6px 10px; border-radius:10px; }
 
-/* tombol hapus (soft danger) */
 .cart-remove{
   border:1px solid #ffb6bd; color:#d12f3f; background:#fff5f6;
   border-radius:10px; padding:6px 12px; font-weight:600; cursor:pointer; white-space:nowrap;
 }
 .cart-remove:hover{ background:#ffe9eb; }
 
-/* harga kanan */
 .cart-price{
   justify-self:end; text-align:right; font-weight:700;
   font-variant-numeric: tabular-nums; min-width:120px;
 }
-.qty{ display:flex; align-items:center; gap:6px }
-.qty .btn{ padding:6px 10px; border-radius:10px }
 
-/* Ringkasan */
-.summary .row{ display:flex; align-items:center; justify-content:space-between; margin:6px 0 }
+.summary .row{ display:flex; align-items:center; justify-content:space-between; margin:6px 0; }
 
-/* ========== Modal Tambah Produk (dialog native) ========== */
-.modal{ padding:0; border:none; background:none }
-.modal::backdrop{ background:rgba(0,0,0,.35) }
+/* =========================================================
+   MODAL TAMBAH PRODUK (dialog)
+   ========================================================= */
+.modal{ padding:0; border:none; background:none; }
+.modal::backdrop{ background:rgba(0,0,0,.35); }
 .modal-card{
   width:560px; max-width:calc(100vw - 24px);
   background:var(--card); border:1px solid var(--border);
   border-radius:16px; padding:16px;
 }
-.label{ display:block; font-size:13px; color:var(--muted); margin-top:8px; margin-bottom:6px }
-.flex2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
-.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px }
+.label{ display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
+.flex2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
 
-/* ========== Dashboard KPI & list ==========
-   (dipakai di view-dashboard) */
-.kpi-grid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:12px }
-.kpi-card{
-  background:var(--card); border:1px solid var(--border);
-  border-radius:14px; padding:12px;
+/* =========================================================
+   DASHBOARD (KPI & lists)
+   ========================================================= */
+.kpi-grid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:12px; }
+.kpi-card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; }
+.kpi-card.subtle{ background:#f8fafc; }
+.kpi-title{ font-size:13px; color:var(--muted); }
+.kpi-value{ font-size:24px; font-weight:800; margin-top:4px; }
+.kpi-note{ font-size:12px; color:var(--muted); margin-top:2px; }
+
+.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.list .row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
+.badge{ padding:4px 8px; border-radius:10px; background:#eef2ff; color:#3730a3; font-size:12px; }
+.recent .item{ padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
+.recent .muted{ font-size:12px; }
+
+/* =========================================================
+   RECEIPT MODAL (Cetak)
+   ========================================================= */
+#receiptModal{ border:none; padding:0; }
+#receiptModal::backdrop{ background:rgba(0,0,0,.5); }
+
+.receipt-card{
+  background:#fff; padding:16px; border-radius:12px;
+  border:5px solid #ddd; width:320px; max-width:90vw; margin:auto;
+  box-shadow:0 4px 16px rgba(0,0,0,.25);
+  display:flex; flex-direction:column; gap:12px; align-items:center; justify-content:center;
+  min-height:420px;
 }
-.kpi-card.subtle{ background:#f8fafc }
-.kpi-title{ font-size:13px; color:var(--muted) }
-.kpi-value{ font-size:24px; font-weight:800; margin-top:4px }
-.kpi-note{ font-size:12px; color:var(--muted); margin-top:2px }
-
-.grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px }
-.list .row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border) }
-.badge{ padding:4px 8px; border-radius:10px; background:#eef2ff; color:#3730a3; font-size:12px }
-.recent .item{ padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between }
-.recent .muted{ font-size:12px }
-
-/* Modal */
-#receiptModal {
-  border: none;
-  padding: 0;
+.receipt{
+  width:58mm; background:#fff; padding:12px;
+  font-family:monospace; font-size:13px; line-height:1.4;
+  border-radius:4px; border:1px solid #ccc; margin:0 auto;
 }
-
-#receiptModal::backdrop {
-  background: rgba(0, 0, 0, 0.5); /* backdrop gelap */
+.actions{ display:flex; justify-content:center; gap:12px; }
+.actions button{
+  padding:10px 20px; border:none; border-radius:6px; cursor:pointer;
+  font-size:13px; font-weight:600; flex:none;
 }
+#btnPrint{ background:#2563eb; color:#fff; }
+#btnClose{ background:#dc2626; color:#fff; }
 
-/* Kotak preview */
-.receipt-card {
-  background: #fff;
-  padding: 16px;
-  border-radius: 12px;
-  border: 5px solid #ddd;
-  width: 320px;       /* lebih proporsional */
-  max-width: 90vw;
-  margin: auto;
-  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+.receipt .center{ text-align:center; }
+.receipt .strong{ font-weight:bold; }
+.receipt .line{ border-top:1px dashed #000; margin:6px 0; }
+.receipt .row{ display:flex; justify-content:space-between; }
+.receipt .subrow{ font-size:11px; color:#555; margin-left:4px; }
+.receipt div{ margin:2px 0; }
 
-  display: flex;
-  flex-direction: column;
-  gap: 12px;          /* jarak antar isi */
-  align-items: center;
-  justify-content: center;   /* ⬅️ isi ditengah vertical */
-
-  min-height: 420px; /* ⬅️ bikin kotaknya lebih tinggi */
-}
-
-/* Struk tetap center */
-.receipt {
-  width: 58mm;
-  background: #fff;
-  padding: 12px;
-  font-family: monospace;
-  font-size: 13px;
-  line-height: 1.4;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-  margin: 0 auto;     /* center di dalam card */
+/* Print-only */
+@media print{
+  body *{ visibility:hidden; }
+  #receiptModal, #receiptModal *{ visibility:visible; }
+  #receiptModal{ position:absolute; inset:0 auto auto 0; }
+  .receipt-card{ box-shadow:none; padding:0; border-radius:0; width:auto; }
+  .actions{ display:none; }
 }
 
-/* Tombol tetap normal */
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 12px;
+/* =========================================================
+   DISKON (input + select)
+   ========================================================= */
+.flex2 #discountInput{ font-weight:600; }
+.flex2 #discountType{
+  border:1px solid var(--border); border-radius:12px;
+  padding:10px 12px; background:#f3f4f6;
+}
+.flex2 #discountType:focus{ box-shadow:0 0 0 3px var(--ring); background:#fff; }
+
+/* =========================================================
+   HOLD / PARKIR TRANSAKSI
+   ========================================================= */
+#holdList .row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 0; border-bottom:1px solid var(--border);
 }
 
-.actions button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  flex: none;       /* supaya gak ikut melar */
+#btnHold{ margin-top:8px;
+ font-size: 14px;
+} /* jarak kalau sendirian */
+
+/* tema tombol hold */
+.btn-hold{
+  background:#fbbf24; border:1px solid #f59e0b; color:#78350f;
+  font-weight:600;
+}
+.btn-hold:hover{ background:#f59e0b; color:#fff; }
+
+#holdList .row button{ margin-left:6px; }
+
+/* tombol “Lihat Transaksi Tertahan” */
+#btn-open-hold{
+  display:block; width:100%; margin-top:8px;
+  padding:8px 18px; font-size:14px; border-radius:14px; box-sizing:border-box;
+}
+#btn-open-hold.btn-hold{
+  background:#fbbf24; border:1px solid #f59e0b; color:#78350f; font-weight:600;
+}
+#btn-open-hold.btn-hold:hover{ background:#f59e0b; color:#fff; }
+
+/* baris dua tombol sejajar */
+#holdButtonsRow{
+  display:flex; gap:10px; margin-top:10px;
 }
 
-#btnPrint { background: #2563eb; color: #fff; }
-#btnClose { background: #dc2626; color: #fff; }
+#holdButtonsRow #btnHold,
+#holdButtonsRow #btn-open-hold{
+  flex:1; width:auto!important; margin-top:0;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+#btnHold, #btn-open-hold { visibility: hidden; }
+.js-hold-ready #btnHold, .js-hold-ready #btn-open-hold { visibility: visible; }
 
-.receipt .center { text-align: center; }
-.receipt .strong { font-weight: bold; }
-.receipt .line { border-top: 1px dashed #000; margin: 6px 0; }
-.receipt .row { display: flex; justify-content: space-between; }
-.receipt .subrow { font-size: 11px; color: #555; margin-left: 4px; }
-.receipt div { margin: 2px 0; }
-
-/* Print mode */
-@media print {
-  body * { visibility: hidden; }
-  #receiptModal, #receiptModal * { visibility: visible; }
-  #receiptModal {
-    position: absolute;
-    left: 0; top: 0;
-  }
-  .receipt-card {
-    box-shadow: none;
-    padding: 0;
-    border-radius: 0;
-    width: auto;
-  }
-  .actions { display: none; }
+/* ====== Hold Buttons row (di bawah tombol Bayar) ====== */
+#holdButtonsRow{
+  display:flex;
+  gap:10px;
+  margin-top:8px;
+  flex-wrap:wrap;
+}
+#holdButtonsRow .btn{
+  height:38px;
+  padding:0 14px;
+  border-radius:10px;
+  font-weight:600;
 }
 
-
-/* ========== Responsif ========== */
-@media (max-width: 1024px){
-  .grid{ grid-template-columns: repeat(3, minmax(0,1fr)) }
-  .container{ grid-template-columns: 1fr }
-  .kpi-grid{ grid-template-columns: repeat(2, minmax(0,1fr)) }
-  .grid-2{ grid-template-columns: 1fr }
+/* tombol kuning “Tahan Transaksi” (optional, biar konsisten) */
+#holdButtonsRow #btnHold{
+  background:#F59E0B;      /* amber-500 */
+  border:1px solid #F59E0B;
+  color:#fff;
 }
-@media (max-width: 640px){
-  .grid{ grid-template-columns: repeat(2, minmax(0,1fr)) }
+#holdButtonsRow #btnHold:hover{ filter:brightness(1.05); }
+
+/* tombol “Lihat Transaksi Tertahan” (ghost) */
+#holdButtonsRow #btn-open-hold{
+  background:#fff;
+  border:1px solid #e5e7eb; /* slate-200 */
+  color:#374151;            /* gray-700 */
+}
+#holdButtonsRow #btn-open-hold:hover{ background:#f9fafb; }
+
+/* ====== Tombol di dalam modal #holdModal saja ====== */
+#holdModal .btn{
+  border-radius:999px;
+  height:34px;
+  padding:0 14px;
+  font-weight:600;
+  transition:transform .04s ease, box-shadow .2s ease, background .2s;
+}
+#holdModal .btn:hover{ box-shadow:0 1px 6px rgba(0,0,0,.06); }
+#holdModal .btn:active{ transform:translateY(1px); }
+
+/* Susunan tombol kanan */
+#holdModal .row{ display:flex; align-items:center; justify-content:space-between; }
+#holdModal .row > div:last-child{ display:flex; gap:8px; }
+
+/* “Lanjutkan” = primary biru (asumsinya tombol pertama di kanan) */
+#holdModal .row > div:last-child .btn:first-child{
+  background:#2563EB;      /* indigo-600 */
+  border:1px solid #2563EB;
+  color:#fff;
+}
+#holdModal .row > div:last-child .btn:first-child:hover{ filter:brightness(1.05); }
+
+/* “Hapus” = ghost-danger (asumsinya tombol punya class .danger, kalau ada) */
+#holdModal .btn.danger{
+  background:#fff;
+  border:1px solid #fecaca; /* red-200 */
+  color:#ef4444;            /* red-500 */
+}
+#holdModal .btn.danger:hover{ background:#fff1f2; }
+
+/* Tombol “Tutup” di footer modal = ghost netral */
+#holdModal .modal-actions{ display:flex; justify-content:flex-end; }
+#holdModal .modal-actions .btn{
+  background:#fff;
+  border:1px solid #e5e7eb;
+  color:#374151;
+}
+#holdModal .modal-actions .btn:hover{ background:#f9fafb; }
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+@media (max-width:1024px){
+  .container{ grid-template-columns:1fr; }
+  .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
+  .kpi-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid-2{ grid-template-columns:1fr; }
+}
+@media (max-width:640px){
+  .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
 }

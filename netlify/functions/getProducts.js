@@ -11,8 +11,23 @@ const err = (e, code = 500) => ({
   headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   body: JSON.stringify({ ok: false, error: e.message || String(e) }),
 });
+
 const parseNum = (v) => Number(String(v ?? '').replace(/[^\d.-]/g, '')) || 0;
 const norm = (s) => String(s || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
+
+// Convert nilai tanggal: dukung teks "16/9/2025" & serial Sheets
+function toDateString(cell) {
+  if (cell == null || cell === '') return '';
+  // serial number dari Google Sheets
+  if (typeof cell === 'number') {
+    const ms = Math.round((cell - 25569) * 86400 * 1000); // 25569 = 1970-01-01
+    const d = new Date(ms);
+    if (!isNaN(d)) return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+  }
+  const s = String(cell).trim();
+  // biarkan string apa adanya (umumnya sudah dd/mm/yyyy)
+  return s;
+}
 
 function getEnv() {
   const SERVICE_EMAIL =
@@ -26,17 +41,21 @@ function getEnv() {
     process.env.GOOGLE_SHEETS_ID || process.env.GOOGLE_SHEET_ID || process.env.SHEET_ID;
 
   const SHEET_PRODUK = process.env.GOOGLE_SHEET_PRODUK || 'Produk';
-  if (!SERVICE_EMAIL || !PRIVATE_KEY || !SPREADSHEET_ID) {
-    throw new Error('Missing env');
-  }
+  if (!SERVICE_EMAIL || !PRIVATE_KEY || !SPREADSHEET_ID) throw new Error('Missing env');
   return { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK };
 }
 
-function colIndex(header, aliases, dflt) {
-  const low = header.map(h => norm(h));
-  for (const a of aliases){ const i = low.indexOf(a); if (i !== -1) return i; }
+const colIndex = (header, aliases, dflt) => {
+  const low = (header || []).map((h) => norm(h));
+  for (const a of aliases) {
+    const i = low.indexOf(a);
+    if (i !== -1) return i;
+  }
+  for (let i = 0; i < low.length; i++) {
+    if (aliases.some((a) => low[i]?.includes(a))) return i;
+  }
   return dflt;
-}
+};
 
 exports.handler = async () => {
   try {
@@ -55,24 +74,35 @@ exports.handler = async () => {
     const rows = data.values || [];
     const [header = [], ...body] = rows;
 
-    const cId    = colIndex(header, ['id','kode','sku'], -1);
-    const cName  = colIndex(header, ['produk','product','name','nama'], 0);
-    const cKat   = colIndex(header, ['kategori','category'], 1);
-    const cModal = colIndex(header, ['harga modal','hargamodal','modal','hpp','cost'], 2);
-    const cJual  = colIndex(header, ['harga jual','hargajual','jual','price','harga'], 3);
-    const cStok  = colIndex(header, ['stok','stock'], 4);
+    const cId = colIndex(header, ['id', 'kode', 'sku'], -1);
+    const cName = colIndex(header, ['produk', 'product', 'name', 'nama'], 0);
+    const cKat = colIndex(header, ['kategori', 'category'], 1);
+    const cModal = colIndex(header, ['harga modal', 'hargamodal', 'modal', 'hpp', 'cost'], 2);
+    const cJual = colIndex(header, ['harga jual', 'hargajual', 'jual', 'price', 'harga'], 3);
+    const cStok = colIndex(header, ['stok', 'stock'], 4);
+    const cDate = colIndex(
+      header,
+      ['tanggal masuk produk', 'tanggal masuk', 'tgl masuk', 'tanggal restok'],
+      6
+    );
 
     const products = body
-      .filter(r => (r && r[cName]))
-      .map(r => ({
-        id: cId >= 0 ? (r[cId] || null) : null,
-        name: r[cName],
-        kategori: r[cKat] || 'Lainnya',
-        hargaModal: parseNum(r[cModal]),
-        harga: parseNum(r[cJual]),
-        stok: parseNum(r[cStok]),
-      }));
+      .filter((r) => r && r[cName])
+      .map((r) => {
+        const id = cId >= 0 ? String(r[cId] || '').trim() || null : null;
+        const name = String(r[cName] || '').trim();
+        return {
+          id,
+          name,
+          kategori: (r[cKat] || 'Lainnya').toString(),
+          hargaModal: parseNum(r[cModal]),
+          harga: parseNum(r[cJual]), // harga jual
+          stok: parseNum(r[cStok]),
+          tanggalMasuk: cDate >= 0 ? toDateString(r[cDate]) : '',
+        };
+      });
 
+    // tetap balikin array (sesuai konsumsi front-end lo sekarang)
     return ok(products);
   } catch (e) {
     return err(e);
