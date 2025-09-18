@@ -412,7 +412,7 @@ h2,h3{ margin:0 0 10px; }
   font-size: 14px;
   background: #ea4335;
   border:1px solid #ea4335;
-  color: #374151;
+  color: #fff;
 }
 #holdModal .modal-actions .btn:hover{ filter:brightness(1.05); }
 

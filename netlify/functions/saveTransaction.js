@@ -2,50 +2,26 @@ const { google } = require('googleapis');
 
 const ok = (data) => ({
   statusCode: 200,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-  },
+  headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   body: JSON.stringify(data),
 });
 const err = (e, code = 500) => ({
   statusCode: code,
-  headers: {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-  },
+  headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
   body: JSON.stringify({ ok: false, error: e.message || String(e) }),
 });
 
 const parseNum = (v) => Number(String(v ?? '').replace(/[^\d.-]/g, '')) || 0;
-const norm = (s) =>
-  String(s || '')
-    .normalize('NFKC')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-const toCol = (idx) => {
-  let n = idx + 1, s = '';
-  while (n) {
-    const r = (n - 1) % 26;
-    s = String.fromCharCode(65 + r) + s;
-    n = Math.floor((n - 1) / 26);
-  }
-  return s;
-};
+const norm = (s) => String(s || '').normalize('NFKC').replace(/\s+/g, ' ').trim().toLowerCase();
+const toCol = (idx) => { let n = idx + 1, s = ''; while (n) { const r = (n - 1) % 26; s = String.fromCharCode(65 + r) + s; n = Math.floor((n - 1) / 26); } return s; };
 
-// --- util tanggal dd/mm/yyyy dari Sheets / ISO / serial
 function parseSheetDate(x){
   if (x instanceof Date) return x;
-  if (typeof x === 'number') {
-    const ms = Math.round((x - 25569) * 86400 * 1000);
-    const d = new Date(ms); return isNaN(d) ? new Date() : d;
-  }
+  if (typeof x === 'number') { const ms = Math.round((x - 25569) * 86400 * 1000); const d = new Date(ms); return isNaN(d) ? new Date() : d; }
   const s = String(x || '').trim();
   const m = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
   if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
-  const d = new Date(s);
-  return isNaN(d) ? new Date() : d;
+  const d = new Date(s); return isNaN(d) ? new Date() : d;
 }
 
 function getEnv() {
@@ -65,19 +41,9 @@ function getEnv() {
   const SHEET_RESTOKHIST = process.env.GOOGLE_SHEET_RESTOK || 'Restok Histori';
 
   if (!SERVICE_EMAIL || !PRIVATE_KEY || !SPREADSHEET_ID) {
-    throw new Error(
-      'Missing env GOOGLE_SERVICE_ACCOUNT_EMAIL/GOOGLE_CLIENT_EMAIL, GOOGLE_PRIVATE_KEY, GOOGLE_SHEETS_ID'
-    );
+    throw new Error('Missing Google Sheets env');
   }
-  return {
-    SERVICE_EMAIL,
-    PRIVATE_KEY,
-    SPREADSHEET_ID,
-    SHEET_PRODUK,
-    SHEET_TRANSAKSI,
-    SHEET_RINGKASAN,
-    SHEET_RESTOKHIST,
-  };
+  return { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID, SHEET_PRODUK, SHEET_TRANSAKSI, SHEET_RINGKASAN, SHEET_RESTOKHIST };
 }
 
 const colIndex = (header, aliases, dflt) => {
@@ -103,15 +69,8 @@ exports.handler = async (event) => {
 
     const paymentMethod = String(trx.paymentMethod || trx.method || 'Cash');
 
-    const {
-      SERVICE_EMAIL,
-      PRIVATE_KEY,
-      SPREADSHEET_ID,
-      SHEET_PRODUK,
-      SHEET_TRANSAKSI,
-      SHEET_RINGKASAN,
-      SHEET_RESTOKHIST,
-    } = getEnv();
+    const { SERVICE_EMAIL, PRIVATE_KEY, SPREADSHEET_ID,
+            SHEET_PRODUK, SHEET_TRANSAKSI, SHEET_RINGKASAN, SHEET_RESTOKHIST } = getEnv();
 
     const auth = new google.auth.GoogleAuth({
       credentials: { client_email: SERVICE_EMAIL, private_key: PRIVATE_KEY },
@@ -119,7 +78,7 @@ exports.handler = async (event) => {
     });
     const sheets = google.sheets({ version: 'v4', auth });
 
-    /* === Load Produk (modal/kategori & posisi stok) === */
+    /* === Load Produk === */
     const prodRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_PRODUK}!A:Z`,
@@ -153,10 +112,10 @@ exports.handler = async (event) => {
       rowByName.set(norm(nm), i);
     }
 
-    /* === Load Restok Histori (pakai Qty Terpakai) === */
+    /* === Load Restok Histori (Qty Terpakai) === */
     const rhRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
-      range: `${SHEET_RESTOKHIST}!A:I`, // A..I (I = Qty Terpakai)
+      range: `${SHEET_RESTOKHIST}!A:I`,
     });
     const rhRows = rhRes.data.values || [];
     const [rhHeader = [], ...rhBody] = rhRows;
@@ -171,11 +130,9 @@ exports.handler = async (event) => {
     const rTgl = colIndex(rhHeader, ['tanggal restok', 'tgl', 'tanggal'], 7);
     const rTerpakai = colIndex(rhHeader, ['qty terpakai', 'terpakai', 'qty dipakai'], 8);
 
-    // Map batch per ProdukID (utama) dan per Nama (fallback)
-    const batchesByProdId = new Map(); // id -> [{...}]
-    const batchesByName = new Map();   // name -> [{...}]
-    // Simpan qtyTerpakai terkini per baris untuk update
-    const terpakaiByRow = new Map();   // rowNumber -> current terpakai
+    const batchesByProdId = new Map();
+    const batchesByName = new Map();
+    const terpakaiByRow = new Map();
 
     for (let i = 0; i < rhBody.length; i++) {
       const r = rhBody[i] || [];
@@ -188,7 +145,7 @@ exports.handler = async (event) => {
 
       const obj = {
         row: rowNum,
-        id: String(r[rRestokId] || '').trim() || '-', // format: BRBMW5-16092025
+        id: String(r[rRestokId] || '').trim() || '-',
         prodId: pid,
         nameKey: pname,
         date: String(r[rTgl] || '').trim(),
@@ -198,29 +155,18 @@ exports.handler = async (event) => {
         terpakaiNow: qtyTerpakai,
       };
 
-      if (pid) {
-        if (!batchesByProdId.has(pid)) batchesByProdId.set(pid, []);
-        batchesByProdId.get(pid).push(obj);
-      }
-      if (pname) {
-        if (!batchesByName.has(pname)) batchesByName.set(pname, []);
-        batchesByName.get(pname).push(obj);
-      }
+      if (pid) { if (!batchesByProdId.has(pid)) batchesByProdId.set(pid, []); batchesByProdId.get(pid).push(obj); }
+      if (pname) { if (!batchesByName.has(pname)) batchesByName.set(pname, []); batchesByName.get(pname).push(obj); }
       terpakaiByRow.set(rowNum, qtyTerpakai);
     }
-
-    // Sort FIFO by tanggal (tua dulu)
     for (const arr of [...batchesByProdId.values(), ...batchesByName.values()]) {
       arr.sort((a, b) => parseSheetDate(a.date) - parseSheetDate(b.date));
     }
 
-    /* === Build detail rows (alokasi FIFO) === */
+    /* === Detail transaksi (alokasi FIFO) === */
     const detailValues = [];
     let totalOmzet = 0, totalHpp = 0;
-
-    // Akumulasi penambahan Qty Terpakai per baris RH
     const incTerpakaiByRow = new Map();
-    // Akumulasi sinkron harga Produk setelah batch lama habis
     const priceSyncByRow = new Map();
 
     for (const it of items) {
@@ -232,13 +178,10 @@ exports.handler = async (event) => {
       const jual = parseNum(it.harga);
       const kat = mapKat.get(nmKey) || 'Lainnya';
 
-      // pilih sumber batch: prioritas by ProdukID, fallback by nama
       const arr =
         (prodIdKey && batchesByProdId.get(prodIdKey)) ||
-        batchesByName.get(nmKey) ||
-        [];
+        batchesByName.get(nmKey) || [];
 
-      // cari row index produk untuk sinkron harga nanti
       let prodRowIdx = null;
       if (pId >= 0 && prodIdKey && rowById.has(prodIdKey)) prodRowIdx = rowById.get(prodIdKey);
       else if (rowByName.has(nmKey)) prodRowIdx = rowByName.get(nmKey);
@@ -254,11 +197,8 @@ exports.handler = async (event) => {
           batchId = chosen.id || '-';
           batchDate = chosen.date || '-';
           rowRH = chosen.row;
-
-          // catat kenaikan Qty Terpakai untuk baris RH ini
           incTerpakaiByRow.set(rowRH, (incTerpakaiByRow.get(rowRH) || 0) + take);
         } else {
-          // fallback: tidak ada batch tercatat (stok lama tanpa RH)
           take = qtyLeft;
           modal = mapModal.get(nmKey) || 0;
           batchId = '-';
@@ -275,18 +215,12 @@ exports.handler = async (event) => {
           trx.tanggal || '',
           trx.waktu || '',
           nm,
-          batchId,      // E
-          batchDate,    // F
-          kat,          // G
-          jual,         // H Harga Jual
-          modal,        // I Harga Modal
-          take,         // J Qty
-          omzet,        // K Omzet
-          hpp,          // L HPP
-          laba,         // M Laba
-          parseNum(trx.diskon || 0),   // N Diskon
-          parseNum(trx.cash || 0),     // O Tunai
-          parseNum(trx.change || 0),   // P Kembali
+          batchId, batchDate, kat,
+          jual, modal, take,
+          omzet, hpp, laba,
+          parseNum(trx.diskon || 0),
+          parseNum(trx.cash || 0),
+          parseNum(trx.change || 0),
         ]);
 
         totalOmzet += omzet;
@@ -294,25 +228,36 @@ exports.handler = async (event) => {
         qtyLeft -= take;
       }
 
-      // setelah alokasi FIFO, lihat batch aktif (yang sisa > 0)
       const active = (arr || []).find(b => b.remain > 0);
       if (active && prodRowIdx != null) {
-        priceSyncByRow.set(prodRowIdx, {
-          jual:  parseNum(active.jual),
-          modal: parseNum(active.modal),
-        });
+        priceSyncByRow.set(prodRowIdx, { jual: parseNum(active.jual), modal: parseNum(active.modal) });
       }
     }
 
-    // === Update Qty Terpakai di Restok Histori (kolom I) ===
+    // === Snapshot biaya per NAMA (weighted avg dari detailValues) ===
+const byName = new Map(); // name -> { qty, hpp }
+for (const row of detailValues) {
+  const name  = row[3];            // D: Nama
+  const modal = Number(row[8]||0); // I: Harga Modal / unit
+  const qty   = Number(row[9]||0); // J: Qty
+  const cur = byName.get(name) || { qty: 0, hpp: 0 };
+  cur.qty += qty;
+  cur.hpp += modal * qty;          // total biaya
+  byName.set(name, cur);
+}
+const costSnapshot = [...byName.entries()].map(([name, { qty, hpp }]) => ({
+  name,
+  qty,
+  modalAtSale: qty ? Math.round(hpp / qty) : 0
+}));
+
+
+    // Update Qty Terpakai di RH
     if (incTerpakaiByRow.size) {
       const writes = [];
       for (const [rowNum, inc] of incTerpakaiByRow.entries()) {
         const current = terpakaiByRow.get(rowNum) || 0;
-        writes.push({
-          range: `${SHEET_RESTOKHIST}!I${rowNum}`,
-          values: [[ current + inc ]],
-        });
+        writes.push({ range: `${SHEET_RESTOKHIST}!I${rowNum}`, values: [[ current + inc ]] });
       }
       await sheets.spreadsheets.values.batchUpdate({
         spreadsheetId: SPREADSHEET_ID,
@@ -320,8 +265,8 @@ exports.handler = async (event) => {
       });
     }
 
-    // === Append ke Transaksi (A:P) ===
-    const appendTrans = await sheets.spreadsheets.values.append({
+    // Append Transaksi
+    await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_TRANSAKSI}!A:P`,
       valueInputOption: 'RAW',
@@ -329,169 +274,30 @@ exports.handler = async (event) => {
       requestBody: { values: detailValues },
     });
 
-    // Clear formatting baris yang baru ditambah (Transaksi)
-    try {
-      const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-      const sheet = sheetMeta.data.sheets.find((s) => s.properties.title === SHEET_TRANSAKSI);
-      const sheetId = sheet?.properties?.sheetId;
-      const rangeStr = appendTrans.data?.updates?.updatedRange; // e.g. "Transaksi!A2:P5"
-      if (sheetId != null && rangeStr) {
-        const m = rangeStr.match(/!(.*?)(\d+):/);
-        const startRowIndex = m ? parseInt(m[2], 10) - 1 : null;
-        const rowCount = detailValues.length;
-        if (startRowIndex != null) {
-          await sheets.spreadsheets.batchUpdate({
-            spreadsheetId: SPREADSHEET_ID,
-            requestBody: {
-              requests: [
-                {
-                  repeatCell: {
-                    range: {
-                      sheetId,
-                      startRowIndex,
-                      endRowIndex: startRowIndex + rowCount,
-                    },
-                    cell: { userEnteredFormat: {} },
-                    fields: 'userEnteredFormat',
-                  },
-                },
-              ],
-            },
-          });
-        }
-      }
-    } catch (e) {
-      console.error('clear formatting Transaksi gagal:', e.message);
-    }
-
-    /* === Append Ringkasan (A:L) === */
+    // Append Ringkasan
     const totalBayar = Math.max(0, totalOmzet - parseNum(trx.diskon || 0));
-    const ringRow = [[
-      trx.transactionId || '',
-      trx.tanggal || '',
-      trx.waktu || '',
-      items.length,
-      totalOmzet,
-      totalHpp,
-      totalOmzet - totalHpp,
-      parseNum(trx.diskon || 0),
-      totalBayar,
-      paymentMethod,
-      parseNum(trx.cash || 0),
-      parseNum(trx.change || 0),
-    ]];
-
-    const appendRing = await sheets.spreadsheets.values.append({
+    await sheets.spreadsheets.values.append({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_RINGKASAN}!A2:L`,
       valueInputOption: 'RAW',
       insertDataOption: 'INSERT_ROWS',
-      requestBody: { values: ringRow },
+      requestBody: { values: [[
+        trx.transactionId || '',
+        trx.tanggal || '',
+        trx.waktu || '',
+        items.length,
+        totalOmzet,
+        totalHpp,
+        totalOmzet - totalHpp,
+        parseNum(trx.diskon || 0),
+        totalBayar,
+        paymentMethod,
+        parseNum(trx.cash || 0),
+        parseNum(trx.change || 0),
+      ]]},
     });
 
-    // Clear formatting baris yang baru ditambah (Ringkasan)
-    try {
-      const sheetMeta = await sheets.spreadsheets.get({ spreadsheetId: SPREADSHEET_ID });
-      const sheet = sheetMeta.data.sheets.find((s) => s.properties.title === SHEET_RINGKASAN);
-      const sheetId = sheet?.properties?.sheetId;
-      const rangeStr = appendRing.data?.updates?.updatedRange; // e.g. "Ringkasan!A2:L2"
-      if (sheetId != null && rangeStr) {
-        const m = rangeStr.match(/!(.*?)(\d+):/);
-        const startRowIndex = m ? parseInt(m[2], 10) - 1 : null;
-        if (startRowIndex != null) {
-          await sheets.spreadsheets.batchUpdate({
-            spreadsheetId: SPREADSHEET_ID,
-            requestBody: {
-              requests: [
-                {
-                  repeatCell: {
-                    range: { sheetId, startRowIndex, endRowIndex: startRowIndex + 1 },
-                    cell: { userEnteredFormat: {} },
-                    fields: 'userEnteredFormat',
-                  },
-                },
-              ],
-            },
-          });
-        }
-      }
-    } catch (e) {
-      console.error('clear formatting Ringkasan gagal:', e.message);
-    }
-
-    // ====== Tidy helpers (center isi, middle; tanpa auto-resize) ======
-async function _getSheetIdByTitle(sheets, spreadsheetId, title) {
-  const meta = await sheets.spreadsheets.get({ spreadsheetId });
-  const sh = meta.data.sheets.find(s => s?.properties?.title === title);
-  return sh?.properties?.sheetId ?? null;
-}
-
-async function _tidySheet(sheets, spreadsheetId, title, cfg = {}) {
-  const sheetId = await _getSheetIdByTitle(sheets, spreadsheetId, title);
-  if (sheetId == null) return;
-
-  const { headerRow = 0, maxCols = 26 } = cfg;
-
-  const headerRange = { sheetId, startRowIndex: headerRow, endRowIndex: headerRow + 1 };
-  const bodyRange   = { sheetId, startRowIndex: headerRow + 1, startColumnIndex: 0, endColumnIndex: maxCols };
-
-  const reqs = [
-    // Freeze header
-    {
-      updateSheetProperties: {
-        properties: { sheetId, gridProperties: { frozenRowCount: headerRow + 1 } },
-        fields: 'gridProperties.frozenRowCount',
-      }
-    },
-    // Header: BOLD (tanpa ubah warna)
-    {
-      repeatCell: {
-        range: headerRange,
-        cell: { userEnteredFormat: { textFormat: { bold: true } } },
-        fields: 'userEnteredFormat.textFormat.bold',
-      }
-    },
-    // Header: center horizontal + vertical
-    {
-      repeatCell: {
-        range: headerRange,
-        cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } },
-        fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment)',
-      }
-    },
-    // BODY: center horizontal + vertical (semua kolom)
-    {
-      repeatCell: {
-        range: bodyRange,
-        cell: { userEnteredFormat: { horizontalAlignment: 'CENTER', verticalAlignment: 'MIDDLE' } },
-        fields: 'userEnteredFormat(horizontalAlignment,verticalAlignment)',
-      }
-    },
-  ];
-
-  await sheets.spreadsheets.batchUpdate({ spreadsheetId, requestBody: { requests: reqs } });
-}
-
-async function _tidyAllSheets(sheets, spreadsheetId, {
-  SHEET_PRODUK     = 'Produk',
-  SHEET_TRANSAKSI  = 'Transaksi',
-  SHEET_RINGKASAN  = 'Ringkasan',
-  SHEET_RESTOKHIST = 'Restok Histori',
-} = {}) {
-  await _tidySheet(sheets, spreadsheetId, SHEET_PRODUK,     { maxCols: 12 });
-  await _tidySheet(sheets, spreadsheetId, SHEET_TRANSAKSI,  { maxCols: 20 });
-  await _tidySheet(sheets, spreadsheetId, SHEET_RINGKASAN,  { maxCols: 20 });
-  await _tidySheet(sheets, spreadsheetId, SHEET_RESTOKHIST, { maxCols: 15 });
-}
-await _tidyAllSheets(sheets, SPREADSHEET_ID, {
-  SHEET_PRODUK,
-  SHEET_TRANSAKSI: process.env.GOOGLE_SHEET_TRANSAKSI || 'Transaksi',
-  SHEET_RINGKASAN: process.env.GOOGLE_SHEET_RINGKASAN || 'Ringkasan',
-  SHEET_RESTOKHIST: process.env.GOOGLE_SHEET_RESTOK || 'Restok Histori',
-});
-
-
-    /* === Kurangi stok Produk (optimistic) + sinkron harga jika batch lama habis === */
+    /* === Kurangi stok + (opsional) sinkron harga === */
     const needByRow = new Map();
     for (const it of items) {
       const id = String(it.id ?? '').trim();
@@ -506,43 +312,39 @@ await _tidyAllSheets(sheets, SPREADSHEET_ID, {
     }
 
     const updates = [];
-    const updatedRows = [];
+    const updatedRowsMap = new Map(); // rowNum -> {row,id,name,stok, harga?, hargaModal?}
+
     for (const [rowIdx, qty] of needByRow.entries()) {
       const r = prodBody[rowIdx] || [];
       const cur = parseNum(r[pStok]);
       const after = Math.max(0, cur - qty);
       const rowNum = rowIdx + 2;
-      updates.push({
-        range: `${SHEET_PRODUK}!${stokCol}${rowNum}:${stokCol}${rowNum}`,
-        values: [[after]],
-      });
-      updatedRows.push({
+      updates.push({ range: `${SHEET_PRODUK}!${stokCol}${rowNum}:${stokCol}${rowNum}`, values: [[after]] });
+      updatedRowsMap.set(rowNum, {
         row: rowNum,
-        id: pId >= 0 ? r[pId] || null : null,
+        id: pId >= 0 ? (r[pId] || null) : null,
         name: r[pName] || '',
         stok: after,
       });
     }
 
-    // 🔁 sinkron harga -> harga batch aktif (kalau berubah)
     for (const [rowIdx, tgt] of priceSyncByRow.entries()) {
       const r = prodBody[rowIdx] || [];
+      const rowNum = rowIdx + 2;
       if (pJual >= 0) {
         const curJ = parseNum(r[pJual]);
         if (tgt.jual != null && tgt.jual !== curJ) {
-          updates.push({
-            range: `${SHEET_PRODUK}!${jualCol}${rowIdx + 2}:${jualCol}${rowIdx + 2}`,
-            values: [[tgt.jual]],
-          });
+          updates.push({ range: `${SHEET_PRODUK}!${jualCol}${rowNum}:${jualCol}${rowNum}`, values: [[tgt.jual]] });
+          const e = updatedRowsMap.get(rowNum) || { row: rowNum, id: pId >= 0 ? (r[pId] || null) : null, name: r[pName] || '' };
+          e.harga = tgt.jual; updatedRowsMap.set(rowNum, e);
         }
       }
       if (pModal >= 0) {
         const curM = parseNum(r[pModal]);
         if (tgt.modal != null && tgt.modal !== curM) {
-          updates.push({
-            range: `${SHEET_PRODUK}!${modalCol}${rowIdx + 2}:${modalCol}${rowIdx + 2}`,
-            values: [[tgt.modal]],
-          });
+          updates.push({ range: `${SHEET_PRODUK}!${modalCol}${rowNum}:${modalCol}${rowNum}`, values: [[tgt.modal]] });
+          const e = updatedRowsMap.get(rowNum) || { row: rowNum, id: pId >= 0 ? (r[pId] || null) : null, name: r[pName] || '' };
+          e.hargaModal = tgt.modal; updatedRowsMap.set(rowNum, e);
         }
       }
     }
@@ -560,7 +362,8 @@ await _tidyAllSheets(sheets, SPREADSHEET_ID, {
       totalOmzet,
       totalHpp,
       totalProfit: totalOmzet - totalHpp,
-      updatedRows,
+      updatedRows: Array.from(updatedRowsMap.values()),
+      costSnapshot,
     });
   } catch (e) {
     console.error('SaveTransaction ERROR:', e.message);
