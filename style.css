@@ -14,38 +14,37 @@ a { color: inherit; text-decoration: none; }
    ========================================================= */
 :root{
   /* Surfaces & text */
-  --bg: #f7f8fa;
-  --card: #ffffff;
-  --ink: #0f172a;
-  --muted: #6b7280;
-  --border: #e5e7eb;
+  --bg:#f7f8fa;
+  --card:#ffffff;
+  --ink:#0f172a;
+  --muted:#6b7280;
+  --border:#e5e7eb;
 
   /* Brand & states */
-  --brand: #2563eb;      /* blue-600 */
-  --brand-700: #1d4ed8;  /* blue-700 */
-  --ring: rgba(96,165,250,.40); /* blue-400 */
+  --brand:#2563eb;        /* blue-600 */
+  --brand-700:#1d4ed8;    /* blue-700 */
+  --ring:rgba(96,165,250,.40); /* blue-400 */
 
-  --danger: #e11d48;   /* rose-600 */
-  --ok: #059669;       /* emerald-600 */
-  --warn: #d97706;     /* amber-600 */
+  --danger:#e11d48;  /* rose-600 */
+  --ok:#059669;      /* emerald-600 */
+  --warn:#d97706;    /* amber-600 */
 
   /* Shape */
-  --radius: 16px;
+  --radius:16px;
 }
 
 /* =========================================================
    GLOBAL
    ========================================================= */
-html { scroll-behavior: smooth; }
+html{ scroll-behavior:smooth; }
 body{
   font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont,
-               "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji",
-               "Segoe UI Emoji";
-  color: var(--ink);
+               "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+  color:var(--ink);
   background:
     radial-gradient(900px 400px at 100% 0%, rgba(37,99,235,.06), transparent 45%),
     linear-gradient(180deg, #fafafa, #f6f7f9);
-  background-attachment: fixed;
+  background-attachment:fixed;
 }
 
 /* Utilities */
@@ -61,14 +60,14 @@ body{
    TOPBAR & TABS
    ========================================================= */
 .topbar{
-  position: sticky; top: 0; z-index: 10;
-  display: flex; align-items: center; gap: 20px;
-  padding: 10px 16px;
-  background: rgba(255,255,255,.85);
-  backdrop-filter: blur(6px);
-  border-bottom: 1px solid var(--border);
+  position:sticky; top:0; z-index:10;
+  display:flex; align-items:center; gap:20px;
+  padding:10px 16px;
+  background:rgba(255,255,255,.85);
+  backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--border);
 }
-.brand{ font-weight: 800; }
+.brand{ font-weight:800; }
 
 .tabs{ display:flex; gap:8px; }
 .tab{
@@ -83,7 +82,7 @@ body{
 .tab-active{ background:var(--brand); color:#fff; border-color:transparent; }
 
 /* =========================================================
-   LAYOUT (POS)
+   LAYOUT
    ========================================================= */
 .container{
   max-width:1500px; margin:16px auto; padding:0 16px;
@@ -94,28 +93,61 @@ body{
 .column.wide{ grid-column:1 / -1; }
 
 /* =========================================================
-   CARDS
+   CARDS – PREMIUM
    ========================================================= */
 .card{
-  background:var(--card);
-  border:2px solid var(--border);
-  border-radius:var(--radius);
+  background:#fff;
+  border:1px solid color-mix(in oklab, var(--border) 85%, #fff 15%);
+  border-radius:14px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    0 1px 0 rgba(2,6,23,.02),
+    0 6px 14px rgba(2,6,23,.05);
   padding:14px;
-  box-shadow:0 1px 2px rgba(0,0,0,.03);
+  transition: box-shadow .2s ease, transform .12s ease;
+}
+.card:hover{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 2px 0 rgba(2,6,23,.02),
+    0 12px 22px rgba(2,6,23,.08);
 }
 .section-header{ display:flex; align-items:center; justify-content:space-between; }
 h2,h3{ margin:0 0 10px; }
+.card > h3{
+  position:relative; padding-left:14px;
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.card > h3::before{
+  content:""; position:absolute; left:0; top:10px;
+  width:8px; height:8px; border-radius:50%;
+  background: color-mix(in oklab, var(--brand) 70%, #fff 30%);
+  box-shadow:0 0 0 2px #eef2f7; opacity:.9;
+}
+.card canvas{ border-radius:12px; }
 
 /* =========================================================
    FORM ELEMENTS & BUTTONS
    ========================================================= */
 .input{
-  width:100%; padding:10px 12px; border-radius:12px;
+  width:100%; height:42px;
+  padding:10px 12px; border-radius:12px;
   border:1px solid var(--border); background:#f3f4f6;
   outline:none; color:var(--ink);
 }
 .input.right{ text-align:right; }
 .input:focus{ box-shadow:0 0 0 3px var(--ring); background:#fff; }
+select.input{
+  appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+    linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size:6px 6px,6px 6px;
+  background-repeat:no-repeat;
+}
 
 .btn{
   border:1px solid var(--border); background:#fff; color:var(--ink);
@@ -125,17 +157,14 @@ h2,h3{ margin:0 0 10px; }
 .btn:hover{ filter:brightness(.98); }
 .btn:active{ transform:translateY(1px); }
 .btn:focus-visible{ outline:none; box-shadow:0 0 0 3px var(--ring); }
-
 .btn-primary{ background:var(--brand); color:#fff; border-color:transparent; }
 .btn-primary:hover{ background:var(--brand-700); }
-
 .btn.danger{ background:#fff; border-color:#fecdd3; color:var(--danger); }
-
 .btn.wide{ width:100%; font-size:16px; font-weight:600; }
 
 /* Ukuran */
 .btn-sm{ padding:6px 10px; font-size:12px; border-radius:10px; }
-.btn-md{ padding:8px 14px; font-size:14px; border-radius:12px; } /* default */
+.btn-md{ padding:8px 14px; font-size:14px; border-radius:12px; }
 .btn-lg{ padding:12px 18px; font-size:15px; border-radius:14px; }
 .btn-xl{ padding:14px 22px; font-size:16px; border-radius:16px; }
 
@@ -146,45 +175,47 @@ h2,h3{ margin:0 0 10px; }
   border-radius:10px;
 }
 
-/* Tombol kartu produk */
-.btn-add{ padding:5px 15px; font-size:15px; border-radius:10px; width:100%; }
-#productGrid .card-prod .btn-add{ margin-top:10px; }
-
 /* =========================================================
    PRODUK (search + grid + card)
    ========================================================= */
 .search{ margin:10px 0 14px; }
+.search .input{ height:44px; border-radius:14px; }
+.search .input::placeholder{ color:#9ca3af; }
 
 .grid{
-  display:grid; gap:12px;
-  grid-template-columns: repeat(4, minmax(0,1fr));
+  display:grid; gap:14px;
+  grid-template-columns:repeat(4, minmax(0,1fr));
 }
-
 .card-prod{
-  background:var(--card); border:1px solid var(--border);
-  border-radius:16px; padding:12px;
+  background:#fff; border:1px solid color-mix(in oklab, var(--border) 85%, #fff 15%);
+  border-radius:16px; padding:14px;
   display:flex; flex-direction:column; gap:8px;
   transition: box-shadow .15s, transform .1s;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.85),
+    0 6px 14px rgba(2,6,23,.05);
 }
-.card-prod:hover{ box-shadow:0 6px 14px rgba(2,6,23,.08); transform:translateY(-1px); }
-
-/* Badge/Pill */
+.card-prod:hover{
+  transform:translateY(-2px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.9),
+    0 12px 22px rgba(2,6,23,.08);
+}
 .pill{
   display:inline-flex; align-items:center; gap:6px; font-size:11px;
-  padding:3px 8px; border-radius:999px; border:1px solid var(--border); background:#fff;
+  padding:4px 8px; border-radius:999px; border:1px solid var(--border); background:#fff;
+  font-weight:600;
 }
 .pill.ok{ background:#ecfdf5; color:var(--ok); border-color:#bbf7d0; }
 .pill.warn{ background:#fff7ed; color:var(--warn); border-color:#fed7aa; }
 .pill.danger{ background:#fff1f2; color:var(--danger); border-color:#fecdd3; }
-
-.prod-name{
-  font-weight:600; font-size:14px; line-height:1.25;
-  min-height:2.2em; /* setara 2 baris */
-}
-.prod-price{ font-size:14px; font-weight:700; }
+.prod-name{ font-weight:600; font-size:15px; line-height:1.25; min-height:2.2em; }
+.prod-price{ font-size:15px; font-weight:800; }
+.btn-add{ padding:5px 15px; font-size:15px; border-radius:10px; width:100%; }
+#productGrid .card-prod .btn-add{ margin-top:10px; }
 
 /* =========================================================
-   KERANJANG
+   KERANJANG & PEMBAYARAN (POS)
    ========================================================= */
 .cart{ max-height:340px; overflow:auto; padding-right:4px; }
 .cart::-webkit-scrollbar{ width:8px; }
@@ -192,41 +223,50 @@ h2,h3{ margin:0 0 10px; }
 
 .cart-row{
   display:grid;
-  grid-template-columns: 1fr auto auto auto; /* info | qty | hapus | harga */
-  gap:10px; padding:10px 0; border-bottom:1px solid var(--border);
+  grid-template-columns:1fr auto auto auto; /* info | qty | hapus | harga */
+  gap:10px; padding:12px 0; border-bottom:1px solid var(--border);
   align-items:center;
 }
-
 .cart-info{ min-width:0; }
 .cart-info .title{
   font-weight:600; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
 .cart-info .meta{ display:block; margin-top:2px; font-size:12px; color:#7a8699; }
-
 .qty{ display:flex; align-items:center; gap:6px; }
 .qty .btn{ padding:6px 10px; border-radius:10px; }
-
 .cart-remove{
   border:1px solid #ffb6bd; color:#d12f3f; background:#fff5f6;
   border-radius:10px; padding:6px 12px; font-weight:600; cursor:pointer; white-space:nowrap;
 }
 .cart-remove:hover{ background:#ffe9eb; }
-
 .cart-price{
   justify-self:end; text-align:right; font-weight:700;
-  font-variant-numeric: tabular-nums; min-width:120px;
+  font-variant-numeric:tabular-nums; min-width:120px;
 }
 
-.summary .row{ display:flex; align-items:center; justify-content:space-between; margin:6px 0; }
+.summary .row{ display:flex; align-items:center; justify-content:space-between; margin:8px 0; }
+.summary .row + .row{
+  border-top:1px dashed color-mix(in oklab, var(--border) 85%, #fff 15%);
+  padding-top:8px;
+}
+
+#total{ font-size:18px; }
+#change{ font-weight:700; }
+
+.checkout-actions{
+  display:grid; grid-template-columns:1fr; gap:10px; margin-top:8px;
+}
+#btnFinish.btn-primary{ font-weight:700; height:42px; border-radius:12px; }
+#btnHold, #btn-open-hold{ height:40px; border-radius:12px; }
 
 /* =========================================================
-   MODAL TAMBAH PRODUK (dialog)
+   MODAL TAMBAH PRODUK
    ========================================================= */
 .modal{ padding:0; border:none; background:none; }
 .modal::backdrop{ background:rgba(0,0,0,.35); }
 .modal-card{
   width:560px; max-width:calc(100vw - 24px);
-  background:var(--card); border:1px solid var(--border);
+  background:#fff; border:1px solid var(--border);
   border-radius:16px; padding:16px;
 }
 .label{ display:block; font-size:13px; color:var(--muted); margin:8px 0 6px; }
@@ -234,27 +274,179 @@ h2,h3{ margin:0 0 10px; }
 .modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:12px; }
 
 /* =========================================================
-   DASHBOARD (KPI & lists)
+   DISKON (input + select)
+   ========================================================= */
+.flex2 #discountInput{ font-weight:600; }
+.flex2 #discountType{
+  height:42px;                                   /* samain tinggi dgn input kiri */
+  border:1px solid var(--border); border-radius:12px;
+  padding:10px 12px;                   /* ruang kanan utk panah */
+  background:#f3f4f6;
+
+  /* tampilkan panah custom supaya konsisten */
+  appearance:none; -webkit-appearance:none;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #94a3b8 50%),
+    linear-gradient(135deg, #94a3b8 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% - 3px),
+    calc(100% - 12px) calc(50% - 3px);
+  background-size:6px 6px,6px 6px;
+  background-repeat:no-repeat;
+}
+.flex2 #discountType:focus{
+  box-shadow:0 0 0 3px var(--ring);
+  background:#fff;
+}
+
+
+/* =========================================================
+   HOLD / PARKIR TRANSAKSI
+   ========================================================= */
+#holdList .row{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:8px 0; border-bottom:1px solid var(--border);
+}
+#btnHold{ margin-top:8px; font-size:14px; } /* jarak kalau sendirian */
+
+.btn-hold{
+  background:#fbbf24; border:1px solid #f59e0b; color:#78350f; font-weight:600;
+}
+.btn-hold:hover{ background:#f59e0b; color:#fff; }
+
+#holdList .row button{ margin-left:6px; }
+
+#btn-open-hold{
+  display:block; width:100%; margin-top:8px;
+  padding:8px 18px; font-size:14px; border-radius:14px; box-sizing:border-box;
+}
+#btn-open-hold.btn-hold{ background:#fbbf24; border:1px solid #f59e0b; color:#78350f; font-weight:600; }
+#btn-open-hold.btn-hold:hover{ background:#f59e0b; color:#fff; }
+
+#holdButtonsRow{
+  display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;
+}
+#holdButtonsRow #btnHold,
+#holdButtonsRow #btn-open-hold{
+  flex:1; width:auto!important; margin-top:0;
+  display:inline-flex; align-items:center; justify-content:center;
+}
+#btnHold, #btn-open-hold{ visibility:hidden; }
+.js-hold-ready #btnHold, .js-hold-ready #btn-open-hold{ visibility:visible; }
+
+#holdModal .btn{
+  border-radius:999px; height:34px; padding:0 14px; font-weight:600;
+  transition:transform .04s ease, box-shadow .2s ease, background .2s;
+}
+#holdModal .btn:hover{ box-shadow:0 1px 6px rgba(0,0,0,.06); }
+#holdModal .btn:active{ transform:translateY(1px); }
+#holdModal .row{ display:flex; align-items:center; justify-content:space-between; }
+#holdModal .row > div:last-child{ display:flex; gap:8px; }
+#holdModal .row > div:last-child .btn:first-child{
+  background:#2563EB; border:1px solid #2563EB; color:#fff;
+}
+#holdModal .row > div:last-child .btn:first-child:hover{ filter:brightness(1.05); }
+#holdModal .btn.danger{
+  background:#fff; border:1px solid #fecaca; color:#ef4444;
+}
+#holdModal .btn.danger:hover{ background:#fff1f2; }
+#holdModal .modal-actions{ display:flex; justify-content:flex-end; }
+#holdModal .modal-actions .btn{
+  font-size:14px; background:#ea4335; border:1px solid #ea4335; color:#fff;
+}
+#holdModal .modal-actions .btn:hover{ filter:brightness(1.05); }
+
+/* =========================================================
+   DASHBOARD (KPI, LIST, CHART)
    ========================================================= */
 .kpi-grid{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:12px; }
-.kpi-card{ background:var(--card); border:1px solid var(--border); border-radius:14px; padding:12px; }
-.kpi-card.subtle{ background:#f8fafc; }
-.kpi-title{ font-size:13px; color:var(--muted); }
-.kpi-value{ font-size:24px; font-weight:800; margin-top:4px; }
+
+/* KPI solid pastel + accent stripe */
+.kpi-card{
+  --kpi-bg:#fff;                /* di-set per kartu di bawah */
+  --kpi-accent:var(--brand);
+  position:relative; overflow:hidden;
+  background:var(--kpi-bg);
+  border:1px solid color-mix(in oklab, var(--border) 85%, #fff 15%);
+  box-shadow:0 6px 14px rgba(2,6,23,.05);
+  padding:12px; border-radius:14px;
+  transition: transform .12s ease, box-shadow .2s ease, border-color .2s ease;
+}
+.kpi-card:hover{ transform:translateY(-2px); box-shadow:0 12px 22px rgba(2,6,23,.08); }
+.kpi-card::before{
+  content:""; position:absolute; inset:0 auto 0 0; width:6px;
+  background:var(--kpi-accent);
+  border-top-left-radius:inherit; border-bottom-left-radius:inherit;
+  transition:width .18s ease; opacity:.9;
+}
+.kpi-card:hover::before{ width:10px; }
+.kpi-title{ display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13px; color:var(--muted); }
+.kpi-value{ font-size:24px; font-weight:800; margin-top:4px; color:var(--ink) !important; letter-spacing:.2px; text-shadow:0 1px 0 rgba(255,255,255,.6); }
 .kpi-note{ font-size:12px; color:var(--muted); margin-top:2px; }
 
+/* Baris 1 (hari ini) */
+.kpi-grid:first-of-type .kpi-card:nth-child(1){ --kpi-bg:#F0FAF3; --kpi-accent:#16a34a; }
+.kpi-grid:first-of-type .kpi-card:nth-child(2){ --kpi-bg:#EFF5FF; --kpi-accent:#2563eb; }
+.kpi-grid:first-of-type .kpi-card:nth-child(3){ --kpi-bg:#F4EEFF; --kpi-accent:#7c3aed; }
+.kpi-grid:first-of-type .kpi-card:nth-child(4){ --kpi-bg:#EFFFF6; --kpi-accent:#0d9488; }
+/* Baris 2 (30 hari) */
+.kpi-grid + .kpi-grid .kpi-card:nth-child(1){ --kpi-bg:#F6FCF8; --kpi-accent:#16a34a; }
+.kpi-grid + .kpi-grid .kpi-card:nth-child(2){ --kpi-bg:#F6F9FF; --kpi-accent:#2563eb; }
+.kpi-grid + .kpi-grid .kpi-card:nth-child(3){ --kpi-bg:#F9F6FF; --kpi-accent:#7c3aed; }
+
 .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-.list .row{ display:flex; align-items:center; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--border); }
-.badge{ padding:4px 8px; border-radius:10px; background:#eef2ff; color:#3730a3; font-size:12px; }
-.recent .item{ padding:10px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
-.recent .muted{ font-size:12px; }
+.list .row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 0; border-bottom:1px dotted color-mix(in oklab, var(--border) 85%, #fff 15%);
+  transition:background .15s ease;
+}
+.list .row:hover{ background:#f8fafc; }
+.badge{ padding:4px 8px; border-radius:10px; background:#eef2ff; color:#3730a3; font-size:12px; border:1px solid #e0e7ff; }
+
+.recent{ position:relative; margin-left:4px; }
+.recent .item{
+  position:relative; border-bottom:none;
+  padding:12px 0 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.recent .item::before{
+  content:""; position:absolute; left:0; top:18px;
+  width:8px; height:8px; border-radius:50%;
+  background:color-mix(in oklab, var(--brand) 65%, #fff 35%);
+  box-shadow:0 0 0 2px #eef2f7, 0 0 6px rgba(37,99,235,.15);
+}
+.recent .item + .item{ border-top:1px dashed color-mix(in oklab, var(--border) 90%, #fff 10%); }
+
+/* Empty state */
+.list .muted:only-child,
+.recent:empty::after,
+#lowStockList:empty::after,
+#catList:empty::after{
+  content:"Belum ada data";
+  display:flex; align-items:center; justify-content:center;
+  min-height:80px; color:var(--muted); font-size:14px;
+  background:#f9fafb; border:1px dashed var(--border); border-radius:12px;
+}
+
+/* Chart canvas & tooltip */
+#profitChart{ display:block; width:100%; height:auto; }
+@media (min-width:641px){ #profitChart{ min-height:180px; } }
+.chart-tooltip{
+  padding:6px 8px; background:#111827; color:#fff;
+  font-size:12px; line-height:1.2; border-radius:8px;
+  box-shadow:0 4px 10px rgba(0,0,0,.2); white-space:nowrap;
+}
+.chart-tooltip .tip-date{ opacity:.85; }
+.chart-tooltip .tip-money{ font-weight:700; }
 
 /* =========================================================
    RECEIPT MODAL (Cetak)
    ========================================================= */
 #receiptModal{ border:none; padding:0; }
 #receiptModal::backdrop{ background:rgba(0,0,0,.5); }
-
 .receipt-card{
   background:#fff; padding:16px; border-radius:12px;
   border:5px solid #ddd; width:320px; max-width:90vw; margin:auto;
@@ -274,7 +466,6 @@ h2,h3{ margin:0 0 10px; }
 }
 #btnPrint{ background:#2563eb; color:#fff; }
 #btnClose{ background:#dc2626; color:#fff; }
-
 .receipt .center{ text-align:center; }
 .receipt .strong{ font-weight:bold; }
 .receipt .line{ border-top:1px dashed #000; margin:6px 0; }
@@ -292,140 +483,18 @@ h2,h3{ margin:0 0 10px; }
 }
 
 /* =========================================================
-   DISKON (input + select)
-   ========================================================= */
-.flex2 #discountInput{ font-weight:600; }
-.flex2 #discountType{
-  border:1px solid var(--border); border-radius:12px;
-  padding:10px 12px; background:#f3f4f6;
-}
-.flex2 #discountType:focus{ box-shadow:0 0 0 3px var(--ring); background:#fff; }
-
-/* =========================================================
-   HOLD / PARKIR TRANSAKSI
-   ========================================================= */
-#holdList .row{
-  display:flex; justify-content:space-between; align-items:center;
-  padding:8px 0; border-bottom:1px solid var(--border);
-}
-
-#btnHold{ margin-top:8px;
- font-size: 14px;
-} /* jarak kalau sendirian */
-
-/* tema tombol hold */
-.btn-hold{
-  background:#fbbf24; border:1px solid #f59e0b; color:#78350f;
-  font-weight:600;
-}
-.btn-hold:hover{ background:#f59e0b; color:#fff; }
-
-#holdList .row button{ margin-left:6px; }
-
-/* tombol “Lihat Transaksi Tertahan” */
-#btn-open-hold{
-  display:block; width:100%; margin-top:8px;
-  padding:8px 18px; font-size:14px; border-radius:14px; box-sizing:border-box;
-}
-#btn-open-hold.btn-hold{
-  background:#fbbf24; border:1px solid #f59e0b; color:#78350f; font-weight:600;
-}
-#btn-open-hold.btn-hold:hover{ background:#f59e0b; color:#fff; }
-
-/* baris dua tombol sejajar */
-#holdButtonsRow{
-  display:flex; gap:10px; margin-top:10px;
-}
-
-#holdButtonsRow #btnHold,
-#holdButtonsRow #btn-open-hold{
-  flex:1; width:auto!important; margin-top:0;
-  display:inline-flex; align-items:center; justify-content:center;
-}
-#btnHold, #btn-open-hold { visibility: hidden; }
-.js-hold-ready #btnHold, .js-hold-ready #btn-open-hold { visibility: visible; }
-
-/* ====== Hold Buttons row (di bawah tombol Bayar) ====== */
-#holdButtonsRow{
-  display:flex;
-  gap:10px;
-  margin-top:8px;
-  flex-wrap:wrap;
-}
-#holdButtonsRow .btn{
-  height:38px;
-  padding:0 14px;
-  border-radius:10px;
-  font-weight:600;
-}
-
-/* tombol kuning “Tahan Transaksi” (optional, biar konsisten) */
-#holdButtonsRow #btnHold{
-  background: #fbbc04;      /* amber-500 */
-  border:1px solid #fbbc04;
-  color:#333;
-}
-#holdButtonsRow #btnHold:hover{ filter:brightness(1.05); }
-
-/* tombol “Lihat Transaksi Tertahan” (ghost) */
-#holdButtonsRow #btn-open-hold{
-  background: #34a853;
-  border:1px solid #34a853; /* slate-200 */
-  color: #fff;            /* gray-700 */
-}
-#holdButtonsRow #btn-open-hold:hover{ filter:brightness(1.05); }
-
-/* ====== Tombol di dalam modal #holdModal saja ====== */
-#holdModal .btn{
-  border-radius:999px;
-  height:34px;
-  padding:0 14px;
-  font-weight:600;
-  transition:transform .04s ease, box-shadow .2s ease, background .2s;
-}
-#holdModal .btn:hover{ box-shadow:0 1px 6px rgba(0,0,0,.06); }
-#holdModal .btn:active{ transform:translateY(1px); }
-
-/* Susunan tombol kanan */
-#holdModal .row{ display:flex; align-items:center; justify-content:space-between; }
-#holdModal .row > div:last-child{ display:flex; gap:8px; }
-
-/* “Lanjutkan” = primary biru (asumsinya tombol pertama di kanan) */
-#holdModal .row > div:last-child .btn:first-child{
-  background:#2563EB;      /* indigo-600 */
-  border:1px solid #2563EB;
-  color:#fff;
-}
-#holdModal .row > div:last-child .btn:first-child:hover{ filter:brightness(1.05); }
-
-/* “Hapus” = ghost-danger (asumsinya tombol punya class .danger, kalau ada) */
-#holdModal .btn.danger{
-  background:#fff;
-  border:1px solid #fecaca; /* red-200 */
-  color:#ef4444;            /* red-500 */
-}
-#holdModal .btn.danger:hover{ background:#fff1f2; }
-
-/* Tombol “Tutup” di footer modal = ghost netral */
-#holdModal .modal-actions{ display:flex; justify-content:flex-end; }
-#holdModal .modal-actions .btn{
-  font-size: 14px;
-  background: #ea4335;
-  border:1px solid #ea4335;
-  color: #fff;
-}
-#holdModal .modal-actions .btn:hover{ filter:brightness(1.05); }
-
-
-/* =========================================================
    RESPONSIVE
    ========================================================= */
 @media (max-width:1024px){
   .container{ grid-template-columns:1fr; }
-  .grid{ grid-template-columns: repeat(3, minmax(0,1fr)); }
-  .kpi-grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .kpi-grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
   .grid-2{ grid-template-columns:1fr; }
+  .kpi-card{ box-shadow:0 4px 10px rgba(2,6,23,.05); }
+  #paymentCard{ position:static; top:auto; }
+  .checkout-actions{ grid-template-columns:1fr 1fr; }
+  #btnFinish{ grid-column:1 / -1; }
 }
 @media (max-width:640px){
-  .grid{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .grid{ grid-template-columns:repeat(2, minmax(0,1fr)); }
 }

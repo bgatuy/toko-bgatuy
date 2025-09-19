@@ -751,23 +751,152 @@ function renderRecent(arr){
 }
 
 
-/* ---------- Chart helper tetap ---------- */
+/* ---------- Chart helper (enhanced) ---------- */
+let chartPoints = [];
+let chartXY = []; // [{x,y,val,label}]
+let chartDPR = Math.max(1, window.devicePixelRatio || 1);
+let chartTip;
+
+function ensureTip() {
+  if (chartTip) return chartTip;
+  chartTip = document.createElement('div');
+  chartTip.className = 'chart-tooltip';
+  chartTip.style.position = 'absolute';
+  chartTip.style.pointerEvents = 'none';
+  chartTip.style.transform = 'translate(-50%, -110%)';
+  chartTip.style.display = 'none';
+  profitChart.parentElement.style.position = 'relative';
+  profitChart.parentElement.appendChild(chartTip);
+  return chartTip;
+}
+
+function attachChartEvents() {
+  if (!profitChart) return;
+  ensureTip();
+  profitChart.onmousemove = (e) => {
+    if (!chartXY.length) return;
+    const rect = profitChart.getBoundingClientRect();
+    const mx = (e.clientX - rect.left);
+    const my = (e.clientY - rect.top);
+    // cari titik terdekat di sumbu X
+    let near = null, best = Infinity;
+    for (const pt of chartXY) {
+      const dx = Math.abs(mx - pt.x);
+      if (dx < best) { best = dx; near = pt; }
+    }
+    if (!near) { chartTip.style.display = 'none'; return; }
+    chartTip.innerHTML = `<div class="tip-date">${near.label}</div><div class="tip-money">Rp ${Number(near.val||0).toLocaleString('id-ID')}</div>`;
+    chartTip.style.left = `${near.x}px`;
+    chartTip.style.top  = `${near.y}px`;
+    chartTip.style.display = 'block';
+  };
+  profitChart.onmouseleave = () => { if (chartTip) chartTip.style.display = 'none'; };
+}
+
 function drawProfitChart(points){
   if (!profitChart) return;
+  attachChartEvents();
+
+  // retina scale
+  const cssW = profitChart.clientWidth || 600;
+  const cssH = 200;
+  profitChart.width  = Math.round(cssW * chartDPR);
+  profitChart.height = Math.round(cssH * chartDPR);
+  profitChart.style.height = cssH + 'px';
+
   if (!chartCtx) chartCtx = profitChart.getContext('2d');
-  const W = profitChart.width = profitChart.clientWidth;
-  const H = profitChart.height;
-  chartCtx.clearRect(0,0,W,H);
-  const values = points.map(p=>Number(p.profit||0));
-  const max = Math.max(1, ...values);
-  const pad = 10;
-  const stepX = (W - pad*2) / Math.max(1, points.length-1);
-  chartCtx.beginPath();
-  points.forEach((p,i)=>{ const x = pad + i*stepX; const y = H - pad - (Number(p.profit||0)/max)*(H-pad*2); if(i===0) chartCtx.moveTo(x,y); else chartCtx.lineTo(x,y); });
-  chartCtx.lineTo(W-pad, H-pad); chartCtx.lineTo(pad, H-pad); chartCtx.closePath();
-  chartCtx.fillStyle = 'rgba(37, 99, 235, .12)'; chartCtx.fill();
-  chartCtx.beginPath();
-  points.forEach((p,i)=>{ const x = pad + i*stepX; const y = H - pad - (Number(p.profit||0)/max)*(H-pad*2); if(i===0) chartCtx.moveTo(x,y); else chartCtx.lineTo(x,y); });
-  chartCtx.strokeStyle = '#2563EB'; chartCtx.lineWidth = 2; chartCtx.stroke();
+  const ctx = chartCtx;
+  ctx.setTransform(chartDPR, 0, 0, chartDPR, 0, 0); // draw in CSS pixels
+
+  // normalize data
+  chartPoints = Array.isArray(points) ? points.map(p => ({
+    label: p.date || p.tanggal || '',
+    val: Number(p.profit || 0)
+  })) : [];
+
+  // layout
+  const padL = 36, padR = 10, padT = 16, padB = 28;
+  const W = cssW, H = cssH;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.font = '12px ui-sans-serif, system-ui';
+
+  // scales
+  const vals = chartPoints.map(p => p.val);
+  const vmax = Math.max(1, ...vals);
+  const vmin = Math.min(0, ...vals);
+  const rng  = Math.max(1, vmax - vmin);
+  const xStep = chartPoints.length > 1 ? plotW / (chartPoints.length - 1) : 0;
+
+  const yOf = (v) => padT + (plotH - ((v - vmin) / rng) * plotH);
+  const xOf = (i) => padL + i * xStep;
+
+  // grid (Y ticks 4)
+  ctx.strokeStyle = '#e5e7eb';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([4,4]);
+  const ticks = 4;
+  for (let t=0; t<=ticks; t++){
+    const y = padT + (plotH * t / ticks);
+    ctx.beginPath(); ctx.moveTo(padL, y); ctx.lineTo(W - padR, y); ctx.stroke();
+    const val = Math.round(vmax - (rng * t / ticks));
+    ctx.fillStyle = '#6b7280';
+    ctx.fillText(`Rp ${val.toLocaleString('id-ID')}`, 4, y - 2);
+  }
+  ctx.setLineDash([]);
+
+  // x labels (tiap 5 hari atau ujung)
+  const every = Math.ceil((chartPoints.length || 1) / 6);
+  ctx.fillStyle = '#6b7280';
+  for (let i=0;i<chartPoints.length;i++){
+    if (i % every === 0 || i === chartPoints.length-1){
+      const x = xOf(i), y = H - padB + 16;
+      const lab = (chartPoints[i].label || '').split('/').slice(0,2).join('/');
+      ctx.fillText(lab, Math.max(padL, Math.min(x-12, W-40)), y);
+    }
+  }
+
+  // area gradient
+  const grad = ctx.createLinearGradient(0, padT, 0, H - padB);
+  grad.addColorStop(0, 'rgba(37,99,235,.30)');
+  grad.addColorStop(1, 'rgba(37,99,235,.03)');
+
+  // line path
+  ctx.beginPath();
+  chartXY = [];
+  chartPoints.forEach((p,i) => {
+    const x = xOf(i), y = yOf(p.val);
+    chartXY.push({ x, y: y - 14, val: p.val, label: p.label });
+    if (i===0) ctx.moveTo(x,y);
+    else ctx.lineTo(x,y);
+  });
+
+  // fill area
+  ctx.lineTo(padL + plotW, H - padB);
+  ctx.lineTo(padL, H - padB);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // stroke line
+  ctx.beginPath();
+  chartPoints.forEach((p,i)=>{ const x = xOf(i), y = yOf(p.val); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.strokeStyle = '#2563EB';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // dots
+  ctx.fillStyle = '#2563EB';
+  for (let i=0;i<chartPoints.length;i++){
+    const x = xOf(i), y = yOf(chartPoints[i].val);
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x,y,5,0,Math.PI*2);
+    ctx.strokeStyle = 'rgba(37,99,235,.25)'; ctx.stroke();
+  }
 }
+
 
