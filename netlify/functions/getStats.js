@@ -61,6 +61,8 @@ exports.handler = async () => {
     const resR = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_RINGKASAN}!A:L`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
     });
     const rowsR = resR.data.values || [];
     const [hdrR = [], ...bodyR] = rowsR;
@@ -149,6 +151,8 @@ exports.handler = async () => {
     const resT = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_TRANSAKSI}!A:P`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
     });
     const rowsT = resT.data.values || [];
     const [hdrT = [], ...bodyT] = rowsT;
@@ -207,6 +211,8 @@ exports.handler = async () => {
     const resP = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_PRODUK}!A:Z`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
     });
     const rowsP = resP.data.values || [];
     const [hdrP = [], ...bodyP] = rowsP;

@@ -82,6 +82,8 @@ exports.handler = async (event) => {
     const prodRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_PRODUK}!A:Z`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
     });
     const prodRows = prodRes.data.values || [];
     const [prodHeader = [], ...prodBody] = prodRows;
@@ -116,6 +118,8 @@ exports.handler = async (event) => {
     const rhRes = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_RESTOKHIST}!A:I`,
+      valueRenderOption: 'UNFORMATTED_VALUE',
+      dateTimeRenderOption: 'FORMATTED_STRING',
     });
     const rhRows = rhRes.data.values || [];
     const [rhHeader = [], ...rhBody] = rhRows;

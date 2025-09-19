@@ -69,7 +69,10 @@ exports.handler = async () => {
     const { data } = await sheets.spreadsheets.values.get({
       spreadsheetId: SPREADSHEET_ID,
       range: `${SHEET_PRODUK}!A:Z`,
+      valueRenderOption: 'UNFORMATTED_VALUE',  // <<— ini penting
+      dateTimeRenderOption: 'FORMATTED_STRING'
     });
+
 
     const rows = data.values || [];
     const [header = [], ...body] = rows;
